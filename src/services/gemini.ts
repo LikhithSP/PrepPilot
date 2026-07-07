@@ -82,13 +82,21 @@ export const geminiService = {
     });
 
     const prompt = `
-      You are an expert interviewer for a ${role} position (${experienceLevel} level).
-      Generate a list of exactly ${count} realistic and diverse interview questions customized to the candidate's profile.
-      Mix technical concepts, coding/architectural challenges, and 1 behavioral question.
-      
-      Candidate's Skills: ${profile.skills.join(', ')}
-      Candidate's Experience Level: ${profile.experience_level}
-      Candidate's Focus/Weak Areas: ${profile.focus_areas.join(', ')}
+      You are an experienced HR interviewer from India conducting a mock interview for a ${role} position (${experienceLevel} level).
+
+      CANDIDATE PROFILE:
+      - Skills: ${profile.skills.join(', ')}
+      - Experience Level: ${profile.experience_level}
+      - Focus/Weak Areas: ${profile.focus_areas.join(', ')}
+
+      INSTRUCTIONS:
+      1. First, identify the key tools, technologies, and frameworks mentioned in the candidate's skills.
+      2. Generate exactly ${count} interview questions that include:
+         - 40% Tool/Technology specific questions (ask practical questions about the tools mentioned in their skills, e.g., "How do you optimize React performance?" or "What is the difference between SQL joins?")
+         - 30% Technical/Role-specific questions (based on the ${role} position and ${experienceLevel} level)
+         - 30% HR/Behavioral questions typical of Indian job interviews (e.g., "Tell me about yourself", "Why do you want to work here?", "What are your strengths and weaknesses?", "Where do you see yourself in 5 years?", "Describe a challenging project")
+
+      Make questions practical, scenario-based, and at the right difficulty level for ${experienceLevel}. Avoid overly complex theoretical questions unless the role specifically requires them.
 
       Return ONLY a JSON array of strings:
       ["Question 1", "Question 2", ...]
@@ -119,17 +127,24 @@ export const geminiService = {
     });
 
     const prompt = `
-      You are a senior interviewer evaluating a candidate for the role of ${role}.
-      
+      You are a senior Indian HR interviewer evaluating a candidate for the role of ${role}.
+
       Question: "${question}"
       Candidate Answer: "${answer}"
-      
-      Provide a highly constructive, specific evaluation of the candidate's answer.
+
+      Evaluate the answer based on:
+      1. Technical accuracy and depth of knowledge
+      2. Practical understanding and real-world application
+      3. Communication clarity and structure
+      4. Relevance to the question asked
+
+      Be constructive and specific in your feedback. Use an encouraging but honest tone typical of professional Indian interviewers.
+
       Return a JSON object with:
-      1. A score between 0 and 100 representing the accuracy, completeness, and delivery.
+      1. A score between 0 and 100.
       2. Key strengths of their answer.
       3. Key weaknesses or missing points.
-      4. A model "better answer" demonstrating how a top candidate would respond.
+      4. A model "better answer" demonstrating how a strong candidate would respond.
 
       Return ONLY a JSON object in this format:
       {
@@ -176,14 +191,17 @@ export const geminiService = {
     `).join('\n');
 
     const prompt = `
-      You are the head of the interviewing board. Review the candidate's performance in the mock interview for a ${role} (${experienceLevel} level).
+      You are the head of the interviewing board at an Indian company. Review the candidate's performance in the mock interview for a ${role} (${experienceLevel} level).
       Here are the questions, answers, and individual scores:
       ${QnAs}
 
       Calculate a final, weighted score (out of 100) and compile a comprehensive final feedback summary detailing:
-      1. Technical readiness level.
+      1. Overall technical readiness and role fit.
       2. Key areas they excelled in.
-      3. Recommendations for further study, resources, or interview techniques.
+      3. Areas needing improvement with specific actionable advice.
+      4. Tips for succeeding in actual Indian job interviews (communication style, common pitfalls, etc.)
+
+      Write in a professional, encouraging tone typical of Indian interview panels. Be specific and actionable.
 
       Return ONLY a JSON object in this format:
       {

@@ -37,7 +37,6 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
   useEffect(() => {
     loadInterviewData();
 
-    // Initialize Web Speech API Recognition
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -84,7 +83,6 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
       const qList = await db.getInterviewQuestions(interviewId);
       setQuestions(qList);
 
-      // Find first unanswered question
       const firstUnanswered = qList.findIndex((q) => q.user_answer === null);
       if (firstUnanswered !== -1) {
         setCurrentIdx(firstUnanswered);
@@ -133,7 +131,6 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
     window.speechSynthesis.speak(utterance);
   };
 
-  // Stop speaking when leaving page
   useEffect(() => {
     return () => {
       if ('speechSynthesis' in window) {
@@ -145,7 +142,6 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
   const handleSubmitAnswer = async () => {
     if (!answer.trim() || !interview || !profile) return;
 
-    // Stop speaking/listening
     if (isListening && recognition) {
       recognition.stop();
     }
@@ -158,14 +154,12 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
     const activeQuestion = questions[currentIdx];
 
     try {
-      // Evaluate Answer via Gemini
       const evaluation = await geminiService.evaluateAnswer(
         activeQuestion.question_text,
         answer,
         interview.role
       );
 
-      // Save to Database
       const updatedQuestion = await db.updateQuestionAnswer(
         activeQuestion.id,
         answer,
@@ -177,18 +171,15 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
         }
       );
 
-      // Update local questions state
       const updatedQuestions = [...questions];
       updatedQuestions[currentIdx] = updatedQuestion;
       setQuestions(updatedQuestions);
 
       setAnswer('');
 
-      // Check if there are more questions
       if (currentIdx + 1 < questions.length) {
         setCurrentIdx(currentIdx + 1);
       } else {
-        // Evaluate overall interview
         const finalReport = await geminiService.generateFinalReport(
           updatedQuestions,
           interview.role,
@@ -213,9 +204,9 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
 
   if (!interview || questions.length === 0) {
     return (
-      <div className="w-full max-w-2xl mx-auto py-24 text-center space-y-4">
-        <Loader className="w-8 h-8 text-indigo-500 animate-spin mx-auto" />
-        <p className="text-slate-400">Loading interview details...</p>
+      <div className="max-w-2xl mx-auto py-24 text-center space-y-4">
+        <Loader className="w-8 h-8 text-theme-primary-color animate-spin mx-auto" />
+        <p className="text-theme-tertiary">Loading interview details...</p>
       </div>
     );
   }
@@ -224,48 +215,48 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
   const progressPercent = Math.round(((currentIdx) / questions.length) * 100);
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-8 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div className="flex items-center justify-between pb-4 border-theme">
         <button
           onClick={onBackToDashboard}
-          className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+          className="flex items-center gap-1.5 text-sm font-medium text-theme-tertiary hover:text-theme-primary transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Exit Interview</span>
         </button>
 
         <div className="text-right">
-          <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
+          <span className="text-xs font-semibold uppercase tracking-wider text-theme-primary-color">
             {interview.role}
           </span>
-          <p className="text-slate-300 text-sm font-medium">
+          <p className="text-theme-secondary text-sm font-medium">
             Question {currentIdx + 1} of {questions.length}
           </p>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+      <div className="w-full h-1.5 bg-theme-surface-alt rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500"
+          className="h-full bg-theme-primary transition-all duration-500"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
 
       {/* Main card */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+      <div className="space-y-6">
         {/* Question Panel */}
-        <div className="md:col-span-12 glass rounded-2xl p-6 space-y-6">
+        <div className="card p-6 space-y-5">
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-              <HelpCircle className="w-5 h-5 text-indigo-400" />
+            <div className="w-10 h-10 bg-theme-primary-light rounded-xl flex items-center justify-center flex-shrink-0">
+              <HelpCircle className="w-5 h-5 text-theme-primary-color" />
             </div>
-            <div className="space-y-3 flex-grow">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <div className="space-y-2 flex-grow">
+              <span className="text-xs font-semibold uppercase tracking-wider text-theme-tertiary">
                 Interviewer Question
               </span>
-              <h2 className="text-xl font-bold text-slate-100 leading-relaxed">
+              <h2 className="text-xl font-semibold text-theme-primary leading-relaxed">
                 {currentQuestion.question_text}
               </h2>
             </div>
@@ -273,8 +264,8 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
               onClick={handleSpeakQuestion}
               className={`p-2.5 rounded-lg border transition-all flex-shrink-0 ${
                 isSpeaking
-                  ? 'bg-indigo-600 border-indigo-500 text-white animate-pulse'
-                  : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600'
+                  ? 'bg-theme-primary border-theme-primary text-white'
+                  : 'bg-theme-surface border-theme text-theme-tertiary hover:text-theme-primary hover:border-theme-hover'
               }`}
               title="Speak Question"
             >
@@ -284,18 +275,18 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
         </div>
 
         {/* Answer Panel */}
-        <div className="md:col-span-12 glass rounded-2xl p-6 space-y-4">
+        <div className="card p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <span className="text-sm font-semibold text-theme-secondary">
               Your Response
             </span>
             {recognition && (
               <button
                 onClick={toggleListening}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${
                   isListening
-                    ? 'bg-rose-500/20 border-rose-500/40 text-rose-400'
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-300'
+                    ? 'bg-theme-danger border-theme-danger text-white'
+                    : 'bg-theme-surface border-theme text-theme-secondary hover:bg-theme-surface-hover'
                 }`}
               >
                 {isListening ? (
@@ -319,17 +310,17 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
             onChange={(e) => setAnswer(e.target.value)}
             disabled={isSubmitting}
             placeholder="Type your structured answer here, or click 'Answer with Speech' to record..."
-            className="w-full p-4 bg-slate-900 border border-slate-700/80 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all disabled:opacity-50"
+            className="input-field resize-none"
           />
 
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-slate-500">
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-xs text-theme-tertiary">
               Tip: Use the STAR method (Situation, Task, Action, Result) for behavioral answers.
             </p>
             <button
               onClick={handleSubmitAnswer}
               disabled={isSubmitting || !answer.trim()}
-              className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 text-white font-semibold rounded-xl shadow-lg hover:shadow-indigo-500/10 transition-all duration-200"
+              className="btn-primary"
             >
               {isSubmitting ? (
                 <>
