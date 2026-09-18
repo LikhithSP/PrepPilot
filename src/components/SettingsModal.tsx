@@ -37,14 +37,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in font-google">
       <div className="google-card w-full max-w-md shadow-xl animate-scale-up overflow-hidden bg-theme-surface">
-        {/* Google Dialog Header */}
+        {/* PrepPilot Dialog Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-theme-surface-alt/50">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-google-blue">
               <Shield className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-theme-primary">Google Workspace Settings</h3>
+              <h3 className="text-sm font-medium text-theme-primary">PrepPilot Settings</h3>
               <p className="text-xs text-theme-tertiary">Configure API connection and theme</p>
             </div>
           </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Profile, Interview } from '../services/supabase';
 import { db } from '../services/supabase';
 import { InterviewSetupModal } from './InterviewSetupModal';
+import interviewHeroImg from '../assets/interview-illustration.png';
 import {
   Sparkles,
   FileText,
@@ -63,7 +64,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-theme">
         <div>
           <h1 className="text-2xl sm:text-3xl font-normal text-theme-primary tracking-tight">
-            Google Interview Workspace
+            PrepPilot Interview Workspace
           </h1>
           <p className="text-xs text-theme-secondary">
             AI-powered mock hiring preparation, resume critique, and technical assessment dossiers.
@@ -80,71 +81,92 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </button>
       </div>
 
-      {/* GOOGLE WORKSPACE TAB NAVIGATION STRIP */}
-      <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-theme text-sm">
-        <button
-          onClick={() => setActiveTab('overview')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl font-medium transition-colors border-b-2 cursor-pointer ${
-            activeTab === 'overview'
-              ? 'border-google-blue text-google-blue bg-blue-50/50 dark:bg-blue-950/30'
-              : 'border-transparent text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover'
-          }`}
+      {/* MODERN FLOATING ROUNDED CAPSULE NAVBAR */}
+      <div className="flex items-center justify-center sm:justify-start pt-1 pb-2">
+        <nav 
+          aria-label="Dashboard Navigation"
+          className="inline-flex items-center gap-1.5 p-1.5 rounded-full bg-[#f2f3f3] dark:bg-[#282d35]/70 backdrop-blur-xl border border-black/5 dark:border-white/10 shadow-inner overflow-x-auto max-w-full transition-all"
         >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-          </svg>
-          <span>Overview</span>
-        </button>
+          {/* Overview Tab */}
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`relative flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer select-none whitespace-nowrap ${
+              activeTab === 'overview'
+                ? 'bg-white dark:bg-[#e4e6ea] text-neutral-900 dark:text-neutral-950 shadow-md font-semibold'
+                : 'text-neutral-700 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'
+            }`}
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span>Overview</span>
+          </button>
 
-        <button
-          onClick={() => setActiveTab('resume_intelligence')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl font-medium transition-colors border-b-2 cursor-pointer ${
-            activeTab === 'resume_intelligence'
-              ? 'border-google-blue text-google-blue bg-blue-50/50 dark:bg-blue-950/30'
-              : 'border-transparent text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover'
-          }`}
-        >
-          <FileText className="w-4 h-4" />
-          <span>Resume Intelligence</span>
-          <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-google-blue text-white font-medium">
-            {profile ? profile.skills.length : 31}
-          </span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('resume_critique')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl font-medium transition-colors border-b-2 cursor-pointer ${
-            activeTab === 'resume_critique'
-              ? 'border-google-blue text-google-blue bg-blue-50/50 dark:bg-blue-950/30'
-              : 'border-transparent text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover'
-          }`}
-        >
-          <Lightbulb className="w-4 h-4 text-google-yellow" />
-          <span>Resume Critique & Mistakes</span>
-          {profile?.resume_mistakes && profile.resume_mistakes.length > 0 && (
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200">
-              {profile.resume_mistakes.length}
+          {/* Resume Intelligence Tab */}
+          <button
+            onClick={() => setActiveTab('resume_intelligence')}
+            className={`relative flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer select-none whitespace-nowrap ${
+              activeTab === 'resume_intelligence'
+                ? 'bg-white dark:bg-[#e4e6ea] text-neutral-900 dark:text-neutral-950 shadow-md font-semibold'
+                : 'text-neutral-700 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Resume Intelligence</span>
+            <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full font-medium ${
+              activeTab === 'resume_intelligence'
+                ? 'bg-neutral-900 dark:bg-neutral-950 text-white'
+                : 'bg-black/10 dark:bg-white/15 text-neutral-800 dark:text-neutral-200'
+            }`}>
+              {profile ? profile.skills.length : 31}
             </span>
-          )}
-        </button>
+          </button>
 
-        <button
-          onClick={() => setActiveTab('evaluation_history')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-t-xl font-medium transition-colors border-b-2 cursor-pointer ${
-            activeTab === 'evaluation_history'
-              ? 'border-google-blue text-google-blue bg-blue-50/50 dark:bg-blue-950/30'
-              : 'border-transparent text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover'
-          }`}
-        >
-          <History className="w-4 h-4" />
-          <span>Evaluation History</span>
-          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-theme-surface-alt text-theme-tertiary">
-            {interviews.length > 0 ? interviews.length : 2}
-          </span>
-        </button>
+          {/* Resume Critique & Mistakes Tab */}
+          <button
+            onClick={() => setActiveTab('resume_critique')}
+            className={`relative flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer select-none whitespace-nowrap ${
+              activeTab === 'resume_critique'
+                ? 'bg-white dark:bg-[#e4e6ea] text-neutral-900 dark:text-neutral-950 shadow-md font-semibold'
+                : 'text-neutral-700 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'
+            }`}
+          >
+            <Lightbulb className="w-3.5 h-3.5 text-amber-500 dark:text-amber-600" />
+            <span>Resume Critique & Mistakes</span>
+            {profile?.resume_mistakes && profile.resume_mistakes.length > 0 && (
+              <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-medium ${
+                activeTab === 'resume_critique'
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-amber-500/20 text-amber-800 dark:text-amber-200'
+              }`}>
+                {profile.resume_mistakes.length}
+              </span>
+            )}
+          </button>
+
+          {/* Evaluation History Tab */}
+          <button
+            onClick={() => setActiveTab('evaluation_history')}
+            className={`relative flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer select-none whitespace-nowrap ${
+              activeTab === 'evaluation_history'
+                ? 'bg-white dark:bg-[#e4e6ea] text-neutral-900 dark:text-neutral-950 shadow-md font-semibold'
+                : 'text-neutral-700 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'
+            }`}
+          >
+            <History className="w-3.5 h-3.5" />
+            <span>Evaluation History</span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-medium ${
+              activeTab === 'evaluation_history'
+                ? 'bg-neutral-800 text-white'
+                : 'bg-black/10 dark:bg-white/15 text-neutral-700 dark:text-neutral-300'
+            }`}>
+              {interviews.length > 0 ? interviews.length : 2}
+            </span>
+          </button>
+        </nav>
       </div>
 
       {/* ========================================================================= */}
@@ -173,11 +195,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </div>
 
-            {/* Card 2: Google Hiring Bar Score */}
+            {/* Card 2: PrepPilot Hiring Bar Score */}
             <div className="google-card p-5 space-y-3 relative overflow-hidden bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold tracking-wider text-theme-tertiary uppercase">
-                  GOOGLE HIRING BAR SCORE
+                  PREPPILOT HIRING BAR SCORE
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
                   Calibrating
@@ -225,36 +247,53 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
 
-          {/* Quick Launch Banner with Dark Blue Gradient matching image */}
-          <div className="google-card p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden border border-blue-950/60 bg-gradient-to-r from-[#0d1b38] via-[#102046] to-[#0c162e]">
-            <div className="space-y-2 max-w-2xl">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-400/30 text-blue-300 text-xs font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                <span>Next Recommended Assessment</span>
-              </div>
-              <h3 className="text-2xl font-normal text-white font-google">
-                Ready for your next mock interview?
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Experience an authentic Google Meet room. The AI interviewer dynamically adapts to your spoken responses in real-time, explores architectural trade-offs, and scores your Google readiness against actual engineering bands.
-              </p>
-            </div>
+          {/* Quick Launch Banner with Illustration matching image */}
+          <div className="google-card p-6 sm:p-8 relative overflow-hidden border border-blue-200/80 dark:border-blue-950/60 bg-gradient-to-br from-blue-50/70 via-indigo-50/40 to-white dark:from-[#0b1937] dark:via-[#171d2b] dark:to-[#2b2e35] shadow-sm dark:shadow-xl">
+            {/* Background subtle radial glow */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-blue-400/10 dark:bg-blue-500/10 blur-3xl pointer-events-none" />
+            
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
+              {/* Left Column: Text & Actions */}
+              <div className="space-y-4 max-w-xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100/70 dark:bg-blue-500/15 border border-blue-200 dark:border-blue-400/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
+                  <span>Next Recommended Assessment</span>
+                </div>
+                
+                <h3 className="text-2xl sm:text-3xl font-normal text-neutral-900 dark:text-white font-google tracking-tight">
+                  Ready for your next mock interview?
+                </h3>
+                
+                <p className="text-xs sm:text-sm text-neutral-600 dark:text-slate-300 leading-relaxed">
+                  Experience an authentic PrepPilot interview room. The AI interviewer dynamically adapts to your spoken responses in real-time, explores architectural trade-offs, and scores your PrepPilot readiness against actual engineering bands.
+                </p>
 
-            <div className="flex items-center gap-3 self-start md:self-auto flex-shrink-0">
-              <button
-                onClick={() => setIsSetupModalOpen(true)}
-                className="px-4 py-2.5 rounded-full border border-white/20 text-xs font-medium text-white/90 hover:text-white hover:bg-white/10 hover:border-white/40 transition-all cursor-pointer"
-              >
-                Customize Topic
-              </button>
-              <button
-                onClick={() => setIsSetupModalOpen(true)}
-                className="btn-google-primary py-2.5 px-5 text-xs font-medium flex items-center gap-2 cursor-pointer shadow-sm"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Launch Mock Interview</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <button
+                    onClick={() => setIsSetupModalOpen(true)}
+                    className="btn-google-primary py-2.5 px-5 text-xs font-medium flex items-center gap-2 cursor-pointer shadow-sm hover:shadow-md transition-all"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Launch Mock Interview</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setIsSetupModalOpen(true)}
+                    className="px-4 py-2.5 rounded-full border border-neutral-300 dark:border-white/20 text-xs font-medium text-neutral-700 dark:text-white/90 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 transition-all cursor-pointer"
+                  >
+                    Customize Topic
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Column: Clean PNG Illustration */}
+              <div className="flex-shrink-0 flex items-center justify-center lg:justify-end">
+                <img
+                  src={interviewHeroImg}
+                  alt="AI Mock Interview"
+                  className="w-full max-w-[280px] sm:max-w-[340px] md:max-w-[380px] h-auto object-contain select-none pointer-events-none drop-shadow-sm"
+                />
+              </div>
             </div>
           </div>
 
@@ -299,7 +338,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </div>
 
                     <div className="flex items-center justify-between pt-3 border-t border-theme text-xs text-theme-tertiary">
-                      <span>{iv.interview_style === 'hr' ? 'Google Behavioral Index' : 'Systems & Architecture Calibrated'}</span>
+                      <span>{iv.interview_style === 'hr' ? 'PrepPilot Behavioral Index' : 'Systems & Architecture Calibrated'}</span>
                       <span className="text-google-blue font-medium flex items-center gap-1 hover:underline">
                         Review Report &gt;
                       </span>
@@ -330,7 +369,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </p>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-theme text-xs text-theme-tertiary">
-                      <span>Google Behavioral Index</span>
+                      <span>PrepPilot Behavioral Index</span>
                       <span className="text-google-blue font-medium flex items-center gap-1">
                         Review Report &gt;
                       </span>
@@ -776,7 +815,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="google-card p-6 bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 space-y-1.5">
                 <div className="flex items-center gap-2 text-sm font-medium text-amber-900 dark:text-amber-200">
                   <Lightbulb className="w-4 h-4 text-google-yellow" />
-                  <span>Google Hiring Committee Resume Critique</span>
+                  <span>PrepPilot Hiring Committee Resume Critique</span>
                 </div>
                 <p className="text-xs text-amber-800/90 dark:text-amber-300/80 leading-relaxed max-w-2xl">
                   Our system screens your resume against tier-1 technology company standards. Here are the specific mistakes, omissions, and targeted improvement areas detected in your resume.
@@ -847,7 +886,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 ) : null}
               </div>
 
-              {/* Concrete Tips for Google Hiring Bar */}
+              {/* Concrete Tips for PrepPilot Hiring Bar */}
               {profile.resume_tips && profile.resume_tips.length > 0 && (
                 <div className="google-card p-6 space-y-3">
                   <h4 className="text-sm font-medium text-theme-primary flex items-center gap-2">
@@ -892,7 +931,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div>
               <h4 className="text-sm font-medium text-theme-primary">Evaluation History & Dossiers</h4>
               <p className="text-xs text-theme-tertiary">
-                Review past transcripts, detailed question-by-question scoring, and Google hiring recommendations.
+                Review past transcripts, detailed question-by-question scoring, and PrepPilot hiring recommendations.
               </p>
             </div>
             <span className="text-xs text-theme-tertiary font-mono">
@@ -942,7 +981,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <History className="w-10 h-10 text-theme-tertiary mx-auto stroke-1" />
               <h4 className="text-base font-normal text-theme-primary">No Past Sessions Recorded</h4>
               <p className="text-xs text-theme-secondary max-w-sm mx-auto">
-                Once you complete your first Google interview simulation, your detailed hiring evaluation dossiers will appear here.
+                Once you complete your first PrepPilot interview simulation, your detailed hiring evaluation dossiers will appear here.
               </p>
               <button
                 onClick={() => setIsSetupModalOpen(true)}
@@ -965,10 +1004,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         onOpenSettings={onOpenSettings}
       />
 
-      {/* Google Material 3 Footer matching reference image */}
+      {/* PrepPilot Footer */}
       <footer className="pt-8 pb-4 border-t border-theme flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-theme-tertiary">
         <div className="flex items-center gap-4">
-          <span className="font-medium text-theme-secondary">Google Cloud AI Platform</span>
+          <span className="font-medium text-theme-secondary">PrepPilot AI Platform</span>
           <span>•</span>
           <a href="#privacy" className="hover:underline">Privacy</a>
           <a href="#terms" className="hover:underline">Terms</a>

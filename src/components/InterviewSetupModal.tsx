@@ -192,7 +192,7 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
       onClose();
       onStartInterview(interview.id);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to initialize Google Meet interview room.');
+      setErrorMsg(err.message || 'Failed to initialize PrepPilot interview room.');
     } finally {
       setIsCreatingInterview(false);
     }
@@ -205,28 +205,28 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
       subtitle: 'DSA & System Architecture',
       color: '#1a73e8',
       icon: Code2,
-      desc: 'Coding problem solving, algorithms, resume project internals, and scalability.',
+      desc: 'Coding problems, algorithmic runtime complexity, system design scalability, and data structures.',
     },
     {
       id: 'managerial' as InterviewStyle,
       title: 'Managerial Round',
-      subtitle: 'Leadership & Trade-offs',
+      subtitle: 'Architecture & Leadership',
       color: '#34a853',
       icon: Users,
-      desc: 'Project ownership, cross-functional alignment with PMs, and technical debt decisions.',
+      desc: 'Technical trade-offs, engineering leadership, project ownership, and resolving team conflict.',
     },
     {
       id: 'hr' as InterviewStyle,
-      title: 'Googliness & Culture',
-      subtitle: 'Values & Behavioral STAR',
+      title: 'HR & Cultural Round',
+      subtitle: 'Behavioral & Culture Fit',
       color: '#fbbc04',
       icon: Briefcase,
-      desc: 'Navigating ambiguity, team collaboration, motivation, and ethical situations.',
+      desc: 'Behavioral situational questions, cultural values alignment, career vision, and salary expectations.',
     },
     {
       id: 'gd' as InterviewStyle,
       title: 'Group Discussion (GD)',
-      subtitle: '5-Minute Continuous Speech',
+      subtitle: '5-Minute Speech on Topic',
       color: '#ea4335',
       icon: Radio,
       desc: 'Trending contemporary topic. Continuous 5-min talk covering Intro, For, Against, and Conclusion.',
@@ -236,16 +236,16 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md animate-fade-in font-google">
       <div className="google-card w-full max-w-2xl bg-theme-surface shadow-2xl overflow-hidden animate-scale-up border border-theme flex flex-col max-h-[92vh]">
-        {/* Google Step Progress Header (Fixed Top) */}
+        {/* PrepPilot Step Progress Header (Fixed Top) */}
         <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-theme bg-theme-surface-alt/90 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-google-blue">
               <Video className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-theme-primary">Google Interview Setup</h3>
+              <h3 className="text-sm font-medium text-theme-primary">PrepPilot Interview Setup</h3>
               <p className="text-xs text-theme-tertiary">
-                Step {step} of 3: {step === 1 ? 'Resume Ingestion' : step === 2 ? 'Select Assessment Round' : 'Ready to Join Meet'}
+                Step {step} of 3: {step === 1 ? 'Resume Ingestion' : step === 2 ? 'Select Assessment Round' : 'Ready to Join Interview'}
               </p>
             </div>
           </div>
@@ -299,7 +299,7 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
               <div className="space-y-1">
                 <h4 className="text-base font-normal text-theme-primary">Ingest Resume Document</h4>
                 <p className="text-xs text-theme-secondary">
-                  Google AI reads your actual projects, skills, and work history to formulate authentic interview questions.
+                  PrepPilot AI reads your actual projects, skills, and work history to formulate authentic interview questions.
                 </p>
               </div>
 
@@ -341,7 +341,7 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
                     <Upload className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-medium text-theme-primary">
-                    {isUploading || isParsing ? 'Analyzing Resume with Google AI...' : 'Upload PDF or Plaintext Resume'}
+                    {isUploading || isParsing ? 'Analyzing Resume with PrepPilot AI...' : 'Upload PDF or Plaintext Resume'}
                   </span>
                   <span className="text-[11px] text-theme-tertiary mt-1">
                     Drag and drop or select file from your computer
@@ -463,7 +463,7 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
             </div>
           )}
 
-          {/* STEP 3: READY TO JOIN GOOGLE MEET */}
+          {/* STEP 3: READY TO JOIN PREPPILOT INTERVIEW */}
           {step === 3 && (
             <div className="space-y-5 animate-fade-in text-center py-4">
               <div className="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-google-blue flex items-center justify-center mx-auto">
@@ -471,7 +471,7 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
               </div>
 
               <div className="space-y-1 max-w-md mx-auto">
-                <h4 className="text-lg font-normal text-theme-primary">Your Google Meet Room is Ready</h4>
+                <h4 className="text-lg font-normal text-theme-primary">Your PrepPilot Room is Ready</h4>
                 <p className="text-xs text-theme-secondary leading-relaxed">
                   Interview Round: <span className="font-medium text-google-blue">{interviewStyle.toUpperCase()}</span> for{' '}
                   <span className="font-medium text-theme-primary">{targetRole}</span> ({experienceLevel}).
@@ -479,7 +479,7 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
                 <p className="text-xs text-theme-tertiary">
                   {interviewStyle === 'gd'
                     ? '5 minutes of uninterrupted continuous speech. Microphone will remain active.'
-                    : 'The Google AI Interviewer will open with an introduction and adapt to your spoken voice.'}
+                    : 'The PrepPilot AI Interviewer will open with an introduction and adapt to your spoken voice.'}
                 </p>
               </div>
             </div>
@@ -531,7 +531,7 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
               className="btn-google-primary text-sm py-2.5 px-7 cursor-pointer"
             >
               {isCreatingInterview ? (
-                <span>Launching Google Meet Room...</span>
+                <span>Launching PrepPilot Room...</span>
               ) : (
                 <>
                   <span>Join Call Now</span>

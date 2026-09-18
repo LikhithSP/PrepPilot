@@ -70,7 +70,7 @@ export const Evaluation: React.FC<EvaluationProps> = ({
       transcriptText += `Score: ${q.score || 0}/100\n`;
       transcriptText += `Strengths: ${q.strengths || 'N/A'}\n`;
       transcriptText += `Weaknesses: ${q.weaknesses || 'N/A'}\n`;
-      transcriptText += `Google Benchmark Answer:\n${q.better_answer || 'N/A'}\n\n`;
+      transcriptText += `PrepPilot Benchmark Answer:\n${q.better_answer || 'N/A'}\n\n`;
       transcriptText += `------------------------------------------\n`;
     });
 
@@ -78,7 +78,7 @@ export const Evaluation: React.FC<EvaluationProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Google_Interview_Dossier_${interview.role.replace(/\s+/g, '_')}.txt`;
+    link.download = `PrepPilot_Interview_Dossier_${interview.role.replace(/\s+/g, '_')}.txt`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -88,7 +88,7 @@ export const Evaluation: React.FC<EvaluationProps> = ({
       <div className="max-w-2xl mx-auto py-32 text-center space-y-4 font-google">
         <div className="w-8 h-8 border-3 border-google-blue border-t-transparent rounded-full animate-spin mx-auto" />
         <p className="text-xs font-medium text-theme-tertiary">
-          Generating Google Hiring Committee Dossier...
+          Generating PrepPilot Hiring Committee Dossier...
         </p>
       </div>
     );
@@ -99,7 +99,7 @@ export const Evaluation: React.FC<EvaluationProps> = ({
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in font-google">
-      {/* Top Google Workspace Document Header */}
+      {/* Top PrepPilot Document Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-theme">
         <div className="flex items-center gap-3">
           <button
@@ -107,7 +107,7 @@ export const Evaluation: React.FC<EvaluationProps> = ({
             className="flex items-center gap-1.5 text-xs font-medium text-theme-secondary hover:text-theme-primary transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Google Interview Workspace</span>
+            <span>PrepPilot Interview Workspace</span>
           </button>
           <div className="h-4 w-px bg-theme-border" />
           <span className="text-xs text-theme-tertiary">
@@ -121,12 +121,12 @@ export const Evaluation: React.FC<EvaluationProps> = ({
             className="btn-google-tonal text-xs flex items-center gap-1.5 py-2 px-4"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Export to Google Docs / TXT</span>
+            <span>Export to PrepPilot Docs / TXT</span>
           </button>
         </div>
       </div>
 
-      {/* HIRING DECISION HERO (GOOGLE WORKSPACE CARD) */}
+      {/* HIRING DECISION HERO (PREPPILOT CARD) */}
       <div className="google-card p-6 sm:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="space-y-2">
@@ -146,17 +146,17 @@ export const Evaluation: React.FC<EvaluationProps> = ({
 
             <h2 className="text-2xl sm:text-3xl font-normal text-theme-primary tracking-tight">
               {isPassed
-                ? 'Candidate Meets or Exceeds Google Hiring Bar'
+                ? 'Candidate Meets or Exceeds PrepPilot Hiring Bar'
                 : 'Further Preparation Recommended Before Onsite'}
             </h2>
             <p className="text-xs sm:text-sm text-theme-secondary max-w-2xl leading-relaxed">
               {isPassed
-                ? 'Strong analytical clarity demonstrated across problem formulation, data structures, trade-offs, and Googliness.'
+                ? 'Strong analytical clarity demonstrated across problem formulation, data structures, trade-offs, and company values.'
                 : 'Demonstrated solid fundamentals; refinement needed in time pacing, structural articulation, and edge case coverage.'}
             </p>
           </div>
 
-          {/* Google Score Circle */}
+          {/* PrepPilot Score Circle */}
           <div className="p-6 rounded-2xl bg-theme-surface-alt border border-theme text-center min-w-[140px]">
             <span className="text-xs text-theme-tertiary block font-medium">
               Overall Rating
@@ -182,8 +182,8 @@ export const Evaluation: React.FC<EvaluationProps> = ({
                 : interview.interview_style === 'managerial'
                 ? 'Leadership & Architectural Trade-offs Breakdown'
                 : interview.interview_style === 'hr'
-                ? 'Googliness & Cultural Fit Breakdown'
-                : 'Google Technical Competencies Breakdown'}
+                ? 'Behavioral & Cultural Fit Breakdown'
+                : 'PrepPilot Technical Competencies Breakdown'}
             </h3>
           </div>
           <span className="text-xs font-mono text-theme-tertiary">
@@ -268,12 +268,12 @@ export const Evaluation: React.FC<EvaluationProps> = ({
         </div>
       </div>
 
-      {/* GOOGLE HIRING COMMITTEE SUMMARY FEEDBACK */}
+      {/* PREPPILOT HIRING COMMITTEE SUMMARY FEEDBACK */}
       <div className="google-card p-6 space-y-4">
         <div className="flex items-center gap-2 pb-2 border-b border-theme">
           <Sparkles className="w-4 h-4 text-google-blue" />
           <h3 className="text-sm font-medium text-theme-primary">
-            Google Hiring Committee Feedback Memo
+            PrepPilot Hiring Committee Feedback Memo
           </h3>
         </div>
         <div className="text-xs sm:text-sm text-theme-secondary leading-relaxed whitespace-pre-line space-y-2">
@@ -373,7 +373,7 @@ export const Evaluation: React.FC<EvaluationProps> = ({
                     {q.better_answer && (
                       <div className="space-y-1 pt-1">
                         <span className="text-xs font-medium text-google-blue flex items-center gap-1">
-                          <Sparkles className="w-3.5 h-3.5" /> Google Benchmark Answer
+                          <Sparkles className="w-3.5 h-3.5" /> PrepPilot Benchmark Answer
                         </span>
                         <div className="p-3.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/40 text-theme-primary leading-relaxed whitespace-pre-wrap">
                           {q.better_answer}

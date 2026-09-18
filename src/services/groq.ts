@@ -128,7 +128,7 @@ export const groqService = {
     resumeMistakes: ResumeMistakeItem[];
     resumeTips: string[];
   }> => {
-    const systemPrompt = `You are an elite Tech Hiring Committee Screener and Principal Staff Engineer at a tier-1 technology company (Google, Meta).
+    const systemPrompt = `You are an elite Tech Hiring Committee Screener and Principal Staff Engineer at a tier-1 technology company.
 Perform a thorough, deep analysis of the provided resume text.
 
 Scrutinize every line, project, past experience, and skill to extract:
@@ -159,7 +159,7 @@ Scrutinize every line, project, past experience, and skill to extract:
      - "impact": why this hurts the candidate in ATS or recruiter review
      - "suggestion": concrete before/after recommendation to fix it
      - "category": "formatting" | "impact_metrics" | "content" | "technical_depth"
-   - "resumeTips": 3 to 5 high-leverage bullet tips to elevate this specific resume to Google hiring standards.
+   - "resumeTips": 3 to 5 high-leverage bullet tips to elevate this specific resume to PrepPilot hiring standards.
 
 Return ONLY a JSON object matching this schema:
 {

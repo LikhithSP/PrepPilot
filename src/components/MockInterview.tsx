@@ -59,6 +59,52 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
   const [timeLeftSeconds, setTimeLeftSeconds] = useState(15 * 60);
   const [timerActive, setTimerActive] = useState(false);
 
+  // Phone Call & Continuous STT Buffer Tracking
+  const transcriptBufferRef = useRef<string>('');
+  const interimTextRef = useRef<string>('');
+
+  // Domain Dictionary & Phonetic Correction Map for Tech Terminology
+  const normalizeTechSpeech = (rawText: string): string => {
+    if (!rawText) return '';
+    let text = rawText;
+
+    const phoneticCorrections: [RegExp, string][] = [
+      [/\b(rock|grok|crock|groc|g rock)\b/gi, 'Groq'],
+      [/\b(ragas|rag us|rag as)\b/gi, 'RAGAS'],
+      [/\b(rag|rags)\b/gi, 'RAG'],
+      [/\b(lisa|liza)\b/gi, 'LISA'],
+      [/\b(llm|llms|elm|elms)\b/gi, 'LLM'],
+      [/\b(bm 25|bm25|pm 25|pm25)\b/gi, 'BM25'],
+      [/\b(qdrant|quadrant|q drant)\b/gi, 'Qdrant'],
+      [/\b(pinecone|pine cone)\b/gi, 'Pinecone'],
+      [/\b(langchain|lang chain)\b/gi, 'LangChain'],
+      [/\b(langgraph|lang graph)\b/gi, 'LangGraph'],
+      [/\b(fast api|fastapi)\b/gi, 'FastAPI'],
+      [/\b(next js|nextjs|next\.js)\b/gi, 'Next.js'],
+      [/\b(react js|reactjs|react\.js)\b/gi, 'React'],
+      [/\b(postgres|postgresql|post gres)\b/gi, 'PostgreSQL'],
+      [/\b(supabase|super base|superbase)\b/gi, 'Supabase'],
+      [/\b(mongo db|mongodb)\b/gi, 'MongoDB'],
+      [/\b(kubernetes|k8s|k eights)\b/gi, 'Kubernetes'],
+      [/\b(docker)\b/gi, 'Docker'],
+      [/\b(github|git hub)\b/gi, 'GitHub'],
+      [/\b(ast|a s t)\b/gi, 'AST'],
+      [/\b(dsa|d s a)\b/gi, 'DSA'],
+      [/\b(pwa|p w a)\b/gi, 'PWA'],
+      [/\b(indexed db|indexeddb)\b/gi, 'IndexedDB'],
+      [/\b(crdt|crdts)\b/gi, 'CRDT'],
+      [/\b(gemini)\b/gi, 'Gemini'],
+      [/\b(pytorch|torch)\b/gi, 'PyTorch'],
+      [/\b(tensorflow)\b/gi, 'TensorFlow'],
+      [/\b(hugging face|huggingface)\b/gi, 'Hugging Face'],
+    ];
+
+    for (const [pattern, replacement] of phoneticCorrections) {
+      text = text.replace(pattern, replacement);
+    }
+    return text;
+  };
+
   // Speech Recognition & Silence / Hesitation Detection
   const recognitionRef = useRef<any>(null);
   const silenceTimerRef = useRef<any>(null);
@@ -82,45 +128,63 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
       rec.maxAlternatives = 3;
 
       rec.onresult = (event: any) => {
-        let interim = '';
-        let final = '';
+        let currentInterim = '';
+        let newFinalChunk = '';
 
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           const res = event.results[i];
           const bestTranscript = res[0].transcript;
           if (res.isFinal) {
-            final += bestTranscript + ' ';
+            newFinalChunk += bestTranscript + ' ';
           } else {
-            interim += bestTranscript;
+            currentInterim += bestTranscript;
           }
         }
 
-        if (final) {
-          setSpokenTranscript((prev) => {
-            const cleanedFinal = final.replace(/\s+/g, ' ').trim();
-            const updated = prev ? `${prev} ${cleanedFinal}` : cleanedFinal;
-            resetSilenceTimer(updated);
-            return updated;
-          });
-        } else if (interim) {
-          resetSilenceTimer();
+        if (newFinalChunk) {
+          const correctedFinal = normalizeTechSpeech(newFinalChunk);
+          transcriptBufferRef.current = (transcriptBufferRef.current + ' ' + correctedFinal)
+            .replace(/\s+/g, ' ')
+            .trim();
+          setSpokenTranscript(transcriptBufferRef.current);
+          resetSilenceTimer(transcriptBufferRef.current);
         }
-        setInterimText(interim);
+
+        if (currentInterim) {
+          const correctedInterim = normalizeTechSpeech(currentInterim);
+          interimTextRef.current = correctedInterim;
+          setInterimText(correctedInterim);
+          resetSilenceTimer();
+        } else {
+          interimTextRef.current = '';
+          setInterimText('');
+        }
       };
 
       rec.onerror = (e: any) => {
-        if (e.error !== 'no-speech') {
+        if (e.error !== 'no-speech' && e.error !== 'audio-capture') {
           console.warn('Speech recognition warning:', e?.error);
         }
       };
 
       rec.onend = () => {
+        // Auto-reconnect speech recognition immediately like a phone call
         if (shouldListenRef.current && !isSpeakingRef.current && !isSubmittingRef.current) {
           try {
             rec.start();
             setIsListening(true);
           } catch {
-            setIsListening(false);
+            // If already restarting, retry in 200ms
+            setTimeout(() => {
+              if (shouldListenRef.current && !isSpeakingRef.current && !isSubmittingRef.current) {
+                try {
+                  rec.start();
+                  setIsListening(true);
+                } catch {
+                  // ignore
+                }
+              }
+            }, 200);
           }
         } else {
           setIsListening(false);
@@ -179,7 +243,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
 
       const initialQ =
         qList[activeIndex]?.question_text ||
-        "Hello! Welcome to your Google interview round. Could you briefly introduce yourself and walk me through your engineering background?";
+        "Hello! Welcome to your PrepPilot interview round. Could you briefly introduce yourself and walk me through your engineering background?";
       const initialTurn: ConversationTurn = {
         id: crypto.randomUUID(),
         speaker: 'ai',
@@ -192,6 +256,8 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
 
       setTimeout(() => {
         speakText(initialQ);
+        // Guarantee candidate microphone starts listening immediately as in a phone call
+        startListening();
       }, 600);
     } catch (e) {
       console.error(e);
@@ -211,26 +277,28 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
 
   const resetSilenceTimer = (latestText?: string) => {
     clearSilenceTimer();
-    const currentText = latestText || spokenTranscript;
+    const currentText = (latestText || transcriptBufferRef.current || spokenTranscript).trim();
 
-    // In GD round, user speaks continuously for 5 uninterrupted minutes
+    // In GD round, user speaks continuously for 5 uninterrupted minutes without AI interruptions
     if (interview?.interview_style === 'gd') {
       return;
     }
 
     if (interview?.interview_mode === 'conversational') {
-      if (currentText.trim().split(/\s+/).length >= 5) {
+      const wordCount = currentText.split(/\s+/).filter(Boolean).length;
+      if (wordCount >= 4) {
+        // Natural human pause before AI responds (2400ms allows candidate to breathe or collect thoughts)
         turnCompletionTimerRef.current = setTimeout(() => {
           if (!isSpeakingRef.current && !isSubmittingRef.current) {
-            handleSendSpokenResponse(currentText);
+            handleSendSpokenResponse(transcriptBufferRef.current || currentText);
           }
-        }, 3200);
+        }, 2400);
       } else {
         silenceTimerRef.current = setTimeout(() => {
-          if (!isSpeakingRef.current && !isSubmittingRef.current) {
+          if (!isSpeakingRef.current && !isSubmittingRef.current && !transcriptBufferRef.current) {
             triggerGentlePauseEncouragement();
           }
-        }, 12000);
+        }, 14000);
       }
     }
   };
@@ -452,6 +520,8 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
         });
       }
 
+      transcriptBufferRef.current = '';
+      interimTextRef.current = '';
       setSpokenTranscript('');
       setInterimText('');
 
@@ -535,7 +605,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
       <div className="max-w-2xl mx-auto py-32 text-center space-y-4 font-google">
         <Loader className="w-8 h-8 text-google-blue animate-spin mx-auto" />
         <p className="text-sm font-medium text-theme-secondary">
-          Joining Google Meet Hiring Room...
+          Joining PrepPilot Interview Room...
         </p>
       </div>
     );
@@ -545,7 +615,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4 animate-fade-in font-google">
-      {/* Google Meet Top Info Bar */}
+      {/* PrepPilot Top Info Bar */}
       <div className="flex items-center justify-between px-2 py-1 text-xs">
         <div className="flex items-center gap-3">
           <button
@@ -558,10 +628,10 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
           <div className="h-4 w-px bg-theme-border" />
           <div className="flex items-center gap-2">
             <span className="font-medium text-theme-primary">
-              Google Meet | {interview.role} ({interview.interview_style?.toUpperCase()} ROUND)
+              PrepPilot | {interview.role} ({interview.interview_style?.toUpperCase()} ROUND)
             </span>
             <span className="text-[11px] font-mono text-theme-tertiary">
-              meet.google.com/mock-{interviewId.slice(0, 6)}
+              preppilot.ai/room-{interviewId.slice(0, 6)}
             </span>
           </div>
         </div>
@@ -588,16 +658,16 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
         </div>
       )}
 
-      {/* GOOGLE MEET VIDEO TILES STAGE (SPLIT SCREEN) */}
+      {/* PREPPILOT VIDEO TILES STAGE (SPLIT SCREEN) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[460px]">
-        {/* TILE 1: GOOGLE AI INTERVIEWER */}
+        {/* TILE 1: PREPPILOT AI INTERVIEWER */}
         <div className="p-6 flex flex-col justify-between relative bg-white dark:bg-[#0f141c] text-neutral-900 dark:text-white min-h-[400px] border border-[#dadce0] dark:border-white/10 rounded-2xl shadow-sm dark:shadow-xl overflow-hidden transition-colors">
-          {/* Top Google Meet Header Badge */}
+          {/* Top PrepPilot Header Badge */}
           <div className="flex items-center justify-between z-10">
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium bg-neutral-100 dark:bg-black/50 text-neutral-800 dark:text-slate-200 px-3 py-1 rounded-full flex items-center gap-1.5 border border-neutral-200 dark:border-white/10 shadow-2xs">
                 <span className="w-2 h-2 rounded-full bg-google-blue animate-pulse" />
-                <span>Google Hiring Committee</span>
+                <span>PrepPilot Hiring Committee</span>
               </span>
               <span className="text-[11px] font-mono text-neutral-500 dark:text-slate-400 bg-neutral-100 dark:bg-white/5 px-2 py-0.5 rounded-full border border-neutral-200 dark:border-white/5 hidden sm:inline-block">
                 Principal Architect
@@ -791,7 +861,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
             </div>
           </div>
 
-          {/* Google Meet Participant Bottom Label & Spoken Caption */}
+          {/* PrepPilot Participant Bottom Label & Spoken Caption */}
           <div className="z-10 space-y-2">
             {captionsEnabled && (
               <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-black/70 text-neutral-800 dark:text-slate-100 border border-neutral-200 dark:border-white/15 text-xs font-medium leading-relaxed shadow-xs dark:shadow-lg">
@@ -800,7 +870,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
             )}
             <div className="flex items-center justify-between text-xs text-neutral-600 dark:text-slate-300">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-neutral-900 dark:text-white">Google AI Interviewer</span>
+                <span className="font-medium text-neutral-900 dark:text-white">PrepPilot AI Interviewer</span>
                 <span className="text-[11px] text-neutral-500 dark:text-slate-400">• Principal Systems Architect</span>
               </div>
               {isSpeaking ? (
@@ -863,7 +933,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
                     <p className="text-[11px] text-neutral-400 dark:text-slate-500 max-w-xs">
                       {interview.interview_style === 'gd'
                         ? '5-minute non-stop group discussion speech.'
-                        : 'Speak naturally. Google AI responds when you pause.'}
+                        : 'Speak naturally. PrepPilot AI responds when you pause.'}
                     </p>
                   </div>
                 )}
@@ -896,7 +966,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
         </div>
       </div>
 
-      {/* GOOGLE MEET BOTTOM FLOATING CALL CONTROL BAR */}
+      {/* PREPPILOT BOTTOM FLOATING CALL CONTROL BAR */}
       <div className="py-3 px-6 rounded-full bg-theme-surface border border-theme shadow-lg flex items-center justify-between max-w-2xl mx-auto">
         {/* Left: Meeting Time & Topic */}
         <div className="flex items-center gap-2 text-xs font-medium text-theme-secondary hidden sm:flex">
@@ -907,7 +977,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
           </span>
         </div>
 
-        {/* Center: Google Meet Circular Controls */}
+        {/* Center: PrepPilot Circular Controls */}
         <div className="flex items-center gap-3 mx-auto sm:mx-0">
           {/* Mic Button */}
           <button
@@ -955,7 +1025,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
             </button>
           )}
 
-          {/* End Call Button (Red Google Meet Pill) */}
+          {/* End Call Button */}
           <button
             onClick={() => handleEndInterview()}
             disabled={isSubmitting}
@@ -969,7 +1039,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
         {/* Right: Mode status */}
         <div className="hidden sm:flex items-center gap-1.5 text-xs text-theme-tertiary">
           <span className="w-2 h-2 rounded-full bg-google-green" />
-          <span>{interview.interview_style === 'gd' ? '5m GD' : 'Google Meet'}</span>
+          <span>{interview.interview_style === 'gd' ? '5m GD' : 'PrepPilot'}</span>
         </div>
       </div>
     </div>
