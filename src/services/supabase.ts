@@ -12,13 +12,22 @@ export interface Profile {
   created_at: string;
 }
 
+export type InterviewStyle = 'technical' | 'managerial' | 'hr';
+export type DepthLevel = 'low' | 'medium' | 'high';
+
 export interface Interview {
   id: string;
   profile_id: string;
   role: string;
   experience_level: string;
+  interview_style?: InterviewStyle;
+  duration_minutes?: number;
   status: 'in_progress' | 'completed';
   overall_score: number | null;
+  technical_score?: number | null;
+  communication_score?: number | null;
+  problem_solving_score?: number | null;
+  passed?: boolean | null;
   general_feedback: string | null;
   created_at: string;
 }
@@ -27,6 +36,7 @@ export interface InterviewQuestion {
   id: string;
   interview_id: string;
   question_text: string;
+  depth_level?: DepthLevel;
   user_answer: string | null;
   score: number | null;
   strengths: string | null;
