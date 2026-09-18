@@ -2,180 +2,287 @@
 
 @layer base {
   :root {
-    --color-primary: 59 130 246;
-    --color-primary-hover: 37 99 235;
-    --color-primary-light: 239 246 255;
+    /* Google Brand Four-Color Spectrum */
+    --google-blue: 26 115 232;       /* #1a73e8 */
+    --google-blue-hover: 21 87 176;  /* #1557b0 */
+    --google-blue-surface: 232 240 254; /* #e8f0fe */
+    
+    --google-red: 234 67 53;         /* #ea4335 */
+    --google-red-surface: 252 232 230; /* #fce8e6 */
+    
+    --google-yellow: 251 188 4;      /* #fbbc04 */
+    --google-yellow-surface: 254 247 224; /* #fef7e0 */
+    
+    --google-green: 52 168 83;       /* #34a853 */
+    --google-green-surface: 230 244 234; /* #e6f4ea */
+
+    /* Google Workspace Light Theme Surfaces */
+    --color-primary: 26 115 232;
+    --color-primary-hover: 21 87 176;
+    --color-primary-light: 232 240 254;
+    
+    --color-background: 248 249 250; /* Google Grey 50 #f8f9fa */
+    --color-background-alt: 241 243 244; /* #f1f3f4 */
     --color-surface: 255 255 255;
-    --color-surface-hover: 249 250 251;
-    --color-surface-alt: 243 244 246;
-    --color-background: 255 255 255;
-    --color-background-alt: 249 250 251;
-    --color-text-primary: 17 24 39;
-    --color-text-secondary: 107 114 128;
-    --color-text-tertiary: 156 163 175;
-    --color-border: 229 231 235;
-    --color-border-hover: 209 213 219;
-    --color-success: 16 185 129;
-    --color-warning: 245 158 11;
-    --color-danger: 239 68 68;
-    --color-success-bg: 236 253 245;
-    --color-success-border: 167 243 208;
-    --color-warning-bg: 255 251 235;
-    --color-warning-border: 253 230 138;
-    --color-danger-bg: 254 242 242;
-    --color-danger-border: 254 202 202;
+    --color-surface-hover: 241 243 244;
+    --color-surface-alt: 248 249 250;
+    
+    --color-text-primary: 32 33 36;   /* Google Grey 900 #202124 */
+    --color-text-secondary: 95 99 104; /* Google Grey 700 #5f6368 */
+    --color-text-tertiary: 128 134 139; /* Google Grey 600 #80868b */
+    
+    --color-border: 218 220 224;     /* Google Grey 300 #dadce0 */
+    --color-border-hover: 189 193 198; /* Google Grey 400 #bdc1c6 */
+    
+    --color-success: 52 168 83;
+    --color-success-bg: 230 244 234;
+    --color-success-border: 168 218 181;
+    
+    --color-warning: 234 134 0;
+    --color-warning-bg: 254 247 224;
+    --color-warning-border: 253 214 99;
+    
+    --color-danger: 234 67 53;
+    --color-danger-bg: 252 232 230;
+    --color-danger-border: 246 174 168;
+
+    --google-shadow-1: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+    --google-shadow-2: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+    --google-shadow-3: 0 2px 6px 2px rgba(60,64,67,0.15), 0 1px 2px 0 rgba(60,64,67,0.3);
   }
 
   .dark {
-    --color-primary: 96 165 250;
-    --color-primary-hover: 59 130 246;
-    --color-primary-light: 30 58 138;
-    --color-surface: 30 41 59;
-    --color-surface-hover: 51 65 85;
-    --color-surface-alt: 15 23 42;
-    --color-background: 15 23 42;
-    --color-background-alt: 30 41 59;
-    --color-text-primary: 248 250 252;
-    --color-text-secondary: 148 163 175;
-    --color-text-tertiary: 100 116 139;
-    --color-border: 51 65 85;
-    --color-border-hover: 71 85 105;
-    --color-success: 52 211 153;
-    --color-warning: 251 191 36;
-    --color-danger: 248 113 113;
-    --color-success-bg: 20 83 45;
-    --color-success-border: 22 101 52;
-    --color-warning-bg: 120 53 15;
-    --color-warning-border: 146 64 14;
-    --color-danger-bg: 127 29 29;
-    --color-danger-border: 153 27 27;
+    /* Google Workspace Dark Theme */
+    --color-primary: 138 180 248;     /* Google Blue 300 #8ab4f8 */
+    --color-primary-hover: 174 203 250;
+    --color-primary-light: 41 50 65;
+    
+    --color-background: 32 33 36;     /* #202124 */
+    --color-background-alt: 41 42 45; /* #292a2d */
+    --color-surface: 48 49 52;        /* #303134 */
+    --color-surface-hover: 60 64 67;  /* #3c4043 */
+    --color-surface-alt: 41 42 45;
+    
+    --color-text-primary: 232 234 237; /* Google Grey 100 #e8eaed */
+    --color-text-secondary: 154 160 166; /* Google Grey 400 #9aa0a6 */
+    --color-text-tertiary: 128 134 139;
+    
+    --color-border: 60 64 67;         /* Google Grey 700 #3c4043 */
+    --color-border-hover: 95 99 104;
+    
+    --color-success: 129 201 149;     /* #81c995 */
+    --color-success-bg: 30 50 40;
+    --color-success-border: 60 100 70;
+    
+    --color-warning: 253 214 99;      /* #fdd663 */
+    --color-warning-bg: 60 45 20;
+    --color-warning-border: 120 90 30;
+    
+    --color-danger: 242 139 130;      /* #f28b82 */
+    --color-danger-bg: 60 25 25;
+    --color-danger-border: 120 40 40;
+
+    --google-shadow-1: 0 1px 3px 0 rgba(0,0,0,0.5);
+    --google-shadow-2: 0 4px 12px 0 rgba(0,0,0,0.6);
   }
 
   * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    box-sizing: border-box;
   }
 
   body {
     background-color: rgb(var(--color-background));
     color: rgb(var(--color-text-primary));
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Google Sans Text', 'Google Sans', Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
-    line-height: 1.6;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  #root {
-    min-height: 100vh;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Google Sans', 'Google Sans Text', Roboto, Arial, sans-serif;
+    letter-spacing: -0.015em;
+  }
+
+  code, kbd, samp, pre {
+    font-family: 'Roboto Mono', monospace;
   }
 }
 
 @layer components {
-  .card {
+  /* Google Material Design 3 Cards */
+  .google-card {
     background: rgb(var(--color-surface));
     border: 1px solid rgb(var(--color-border));
-    border-radius: 12px;
+    border-radius: 1rem;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .card-hover:hover {
+  .google-card:hover {
     border-color: rgb(var(--color-border-hover));
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    transform: translateY(-1px);
+    box-shadow: var(--google-shadow-1);
   }
 
-  .btn-primary {
-    background: rgb(var(--color-primary));
-    color: white;
-    font-weight: 600;
-    padding: 0.625rem 1.25rem;
-    border-radius: 8px;
-    transition: all 0.15s ease;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-
-  .btn-primary:hover {
-    background: rgb(var(--color-primary-hover));
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  .btn-primary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-
-  .btn-secondary {
-    background: rgb(var(--color-surface));
-    color: rgb(var(--color-text-primary));
+  /* Google Buttons */
+  .btn-google-primary {
+    background-color: #1a73e8;
+    color: #ffffff;
+    font-family: 'Google Sans', 'Google Sans Text', Roboto, sans-serif;
     font-weight: 500;
-    padding: 0.625rem 1.25rem;
-    border-radius: 8px;
-    border: 1px solid rgb(var(--color-border));
-    transition: all 0.15s ease;
-    cursor: pointer;
+    font-size: 0.875rem;
+    padding: 0.625rem 1.5rem;
+    border-radius: 9999px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
   }
 
-  .btn-secondary:hover {
+  .dark .btn-google-primary {
+    background-color: #8ab4f8;
+    color: #202124;
+  }
+
+  .btn-google-primary:hover {
+    background-color: #1557b0;
+    box-shadow: 0 2px 6px 2px rgba(60,64,67,0.2);
+  }
+
+  .dark .btn-google-primary:hover {
+    background-color: #aecbfa;
+  }
+
+  .btn-google-primary:disabled {
+    background-color: rgba(60,64,67,0.12);
+    color: rgba(60,64,67,0.38);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  .dark .btn-google-primary:disabled {
+    background-color: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.38);
+  }
+
+  .btn-google-tonal {
+    background-color: #e8f0fe;
+    color: #1a73e8;
+    font-family: 'Google Sans', 'Google Sans Text', Roboto, sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark .btn-google-tonal {
+    background-color: #283344;
+    color: #8ab4f8;
+  }
+
+  .btn-google-tonal:hover {
+    background-color: #d2e3fc;
+  }
+
+  .dark .btn-google-tonal:hover {
+    background-color: #354256;
+  }
+
+  .btn-google-outlined {
+    background: transparent;
+    color: rgb(var(--color-text-primary));
+    font-family: 'Google Sans', 'Google Sans Text', Roboto, sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.5625rem 1.25rem;
+    border-radius: 9999px;
+    border: 1px solid rgb(var(--color-border));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-google-outlined:hover {
     background: rgb(var(--color-surface-hover));
     border-color: rgb(var(--color-border-hover));
   }
 
-  .input-field {
-    width: 100%;
-    padding: 0.625rem 0.875rem;
-    background: rgb(var(--color-surface));
-    border: 1px solid rgb(var(--color-border));
-    border-radius: 8px;
-    color: rgb(var(--color-text-primary));
-    font-size: 0.875rem;
-    transition: all 0.15s ease;
-    outline: none;
+  /* Google Meet Participant Video Tile */
+  .meet-tile {
+    background: #202124;
+    border-radius: 1rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--google-shadow-2);
+    border: 1px solid rgba(255,255,255,0.08);
   }
 
-  .input-field:focus {
-    border-color: rgb(var(--color-primary));
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  /* Google Meet Control Pill */
+  .meet-ctrl-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border: none;
   }
 
-  .input-field::placeholder {
-    color: rgb(var(--color-text-tertiary));
+  .meet-ctrl-normal {
+    background-color: #3c4043;
+    color: #ffffff;
   }
 
-  .section-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: rgb(var(--color-text-secondary));
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.75rem;
+  .meet-ctrl-normal:hover {
+    background-color: #4a4e52;
   }
 
-  .page-title {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: rgb(var(--color-text-primary));
-    letter-spacing: -0.02em;
+  .meet-ctrl-danger {
+    background-color: #ea4335;
+    color: #ffffff;
   }
 
-  .page-subtitle {
-    font-size: 0.9375rem;
-    color: rgb(var(--color-text-secondary));
-    margin-top: 0.25rem;
+  .meet-ctrl-danger:hover {
+    background-color: #d93025;
   }
 
+  .meet-ctrl-active {
+    background-color: #8ab4f8;
+    color: #202124;
+  }
+
+  /* Google Chip */
+  .google-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.3125rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: 'Google Sans', Roboto, sans-serif;
+  }
+
+  /* Color aliases */
   .text-theme-primary { color: rgb(var(--color-text-primary)); }
   .text-theme-secondary { color: rgb(var(--color-text-secondary)); }
   .text-theme-tertiary { color: rgb(var(--color-text-tertiary)); }
@@ -206,45 +313,45 @@
 
 @layer utilities {
   .animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
-  }
-
-  .animate-scale-up {
-    animation: scaleUp 0.2s ease-out;
+    animation: googleFade 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
+    animation: googleSlideUp 0.25s cubic-bezier(0, 0, 0.2, 1) forwards;
+  }
+
+  .animate-scale-up {
+    animation: googleScaleUp 0.2s cubic-bezier(0, 0, 0.2, 1) forwards;
   }
 }
 
-@keyframes fadeIn {
+@keyframes googleFade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes scaleUp {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(10px); }
+@keyframes googleSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes googleScaleUp {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgb(var(--color-background));
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: rgb(var(--color-border));
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {

@@ -15,15 +15,13 @@ import {
   Loader,
   ArrowLeft,
   ChevronRight,
-  Sparkles,
   Clock,
   User,
   Bot,
-  CheckCircle2,
-  Square,
+  PhoneOff,
   Edit3,
   Lightbulb,
-  HelpCircle,
+  Hand,
 } from 'lucide-react';
 
 interface MockInterviewProps {
@@ -51,6 +49,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
   const [interimText, setInterimText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [manualEditMode, setManualEditMode] = useState(false);
+  const [captionsEnabled, setCaptionsEnabled] = useState(true);
 
   // AI Interviewer Voice & Captions
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -117,7 +116,6 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
       };
 
       rec.onend = () => {
-        // Auto-restart recognition in conversational mode unless speaking or submitting
         if (shouldListenRef.current && !isSpeakingRef.current && !isSubmittingRef.current) {
           try {
             rec.start();
@@ -180,7 +178,9 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
       const activeIndex = firstUnanswered !== -1 ? firstUnanswered : 0;
       setCurrentIdx(activeIndex);
 
-      const initialQ = qList[activeIndex]?.question_text || "Welcome! Let's get started. Could you briefly introduce yourself and your background?";
+      const initialQ =
+        qList[activeIndex]?.question_text ||
+        "Hello! Welcome to your Google interview round. Could you briefly introduce yourself and walk me through your engineering background?";
       const initialTurn: ConversationTurn = {
         id: crypto.randomUUID(),
         speaker: 'ai',
@@ -214,14 +214,11 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
     clearSilenceTimer();
     const currentText = latestText || spokenTranscript;
 
-    // In GD round, the user is given 5 uninterrupted minutes to talk non-stop.
-    // Do NOT auto-submit on 3.2s pause; let them speak continuously until 5 mins finish or they manually end/submit.
+    // In GD round, user speaks continuously for 5 uninterrupted minutes
     if (interview?.interview_style === 'gd') {
       return;
     }
 
-    // In conversational mode for other rounds:
-    // If candidate has spoken a meaningful response and pauses for 3.2 seconds -> automatically send response and continue
     if (interview?.interview_mode === 'conversational') {
       if (currentText.trim().split(/\s+/).length >= 5) {
         turnCompletionTimerRef.current = setTimeout(() => {
@@ -230,7 +227,6 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
           }
         }, 3200);
       } else {
-        // If candidate hasn't spoken or only said a couple words and stays silent for 12s -> gentle encouragement
         silenceTimerRef.current = setTimeout(() => {
           if (!isSpeakingRef.current && !isSubmittingRef.current) {
             triggerGentlePauseEncouragement();
@@ -250,7 +246,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
         questions[currentIdx]?.question_text || 'Current topic',
         interview?.role || 'Software Engineer',
         interview?.interview_style || 'technical',
-        true // candidate hesitating/paused
+        true
       );
 
       if (turn.suggestedHint) {
@@ -283,18 +279,19 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
         true
       );
 
-      const hintText = turn.suggestedHint || "Focus on the core algorithm, trade-offs, or real-life architectural examples from your projects.";
+      const hintText =
+        turn.suggestedHint ||
+        "Consider discussing the time/space complexity tradeoffs and how you would scale this service.";
       setActiveHint(hintText);
       speakText(`Here is a quick pointer: ${hintText}`);
     } catch {
-      setActiveHint("Think about the time & space complexity and how you'd scale this.");
+      setActiveHint("Consider the time/space complexity tradeoffs and edge cases.");
     }
   };
 
   const speakText = (text: string, onEndCallback?: () => void) => {
     if (!('speechSynthesis' in window)) return;
 
-    // Cancel previous speech and resume in case paused by Chrome
     window.speechSynthesis.cancel();
     window.speechSynthesis.resume();
 
@@ -302,7 +299,6 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
     setIsSpeaking(true);
     isSpeakingRef.current = true;
 
-    // Clean markdown/symbols from text so speech synthesis sounds natural
     const cleanText = text
       .replace(/[*_#`~]/g, '')
       .replace(/\[.*?\]\(.*?\)/g, '')
@@ -318,7 +314,14 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
       const voices = window.speechSynthesis.getVoices();
       if (voices.length > 0) {
         const preferredVoice =
-          voices.find((v) => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Guy') || v.name.includes('Jenny'))) ||
+          voices.find(
+            (v) =>
+              v.lang.startsWith('en') &&
+              (v.name.includes('Google') ||
+                v.name.includes('Natural') ||
+                v.name.includes('Samantha') ||
+                v.name.includes('Guy'))
+          ) ||
           voices.find((v) => v.lang.startsWith('en')) ||
           voices[0];
         if (preferredVoice) {
@@ -352,7 +355,6 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
       startListening();
     };
 
-    // Workaround for Chrome long speech garbage collection issue
     window.speechSynthesis.speak(utterance);
   };
 
@@ -391,7 +393,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
-      alert('Speech Recognition is not supported in this browser. Please use Chrome/Edge or type your answers.');
+      alert('Speech Recognition is not supported in this browser. Please use Chrome/Edge.');
       return;
     }
     if (isListening) {
@@ -424,7 +426,6 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
     const activeQuestion = questions[currentIdx];
 
     try {
-      // Record candidate turn
       const candidateTurn: ConversationTurn = {
         id: crypto.randomUUID(),
         speaker: 'candidate',
@@ -435,7 +436,6 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
       const newTurnHistory = [...conversationTurns, candidateTurn];
       setConversationTurns(newTurnHistory);
 
-      // Evaluate the question answer
       if (activeQuestion) {
         const evalResult = await groqService.evaluateAnswer(
           activeQuestion.question_text,
@@ -456,11 +456,9 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
       setSpokenTranscript('');
       setInterimText('');
 
-      // Check if more syllabus questions remain
       if (currentIdx + 1 < questions.length) {
         const nextQ = questions[currentIdx + 1];
 
-        // Generate natural human conversational transition
         const turnResponse = await groqService.generateConversationalTurn(
           newTurnHistory,
           candidateAnswer,
@@ -483,7 +481,6 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
 
         speakText(`${turnResponse.spokenResponse} ... ${nextQ.question_text}`);
       } else {
-        // Complete interview
         await handleEndInterview(newTurnHistory);
       }
     } catch (e: any) {
@@ -536,407 +533,286 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
 
   if (!interview || questions.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto py-24 text-center space-y-4">
-        <Loader className="w-8 h-8 text-theme-primary-color animate-spin mx-auto" />
-        <p className="text-theme-tertiary">Connecting to AI Voice Hiring Room...</p>
+      <div className="max-w-2xl mx-auto py-32 text-center space-y-4 font-google">
+        <Loader className="w-8 h-8 text-google-blue animate-spin mx-auto" />
+        <p className="text-sm font-medium text-theme-secondary">
+          Joining Google Meet Hiring Room...
+        </p>
       </div>
     );
   }
 
   const currentQuestion = questions[currentIdx];
-  const depthColors: Record<string, string> = {
-    low: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
-    medium: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
-    high: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
-  };
-
-  const isLowTime = timeLeftSeconds < 120;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 animate-fade-in">
-      {/* Top Session Control Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-theme">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4 animate-fade-in font-google">
+      {/* Google Meet Top Info Bar */}
+      <div className="flex items-center justify-between px-2 py-1 text-xs">
         <div className="flex items-center gap-3">
           <button
             onClick={onBackToDashboard}
-            className="flex items-center gap-1.5 text-xs font-semibold text-theme-tertiary hover:text-theme-primary transition-colors"
+            className="flex items-center gap-1.5 text-xs font-medium text-theme-secondary hover:text-theme-primary transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Exit to Dashboard</span>
+            <span>Leave Call</span>
           </button>
           <div className="h-4 w-px bg-theme-border" />
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-theme-primary">{interview.role}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-theme-primary-light text-theme-primary-color border border-theme-primary/20">
-              {interview.interview_style || 'Technical'} Round
+            <span className="font-medium text-theme-primary">
+              Google Meet | {interview.role} ({interview.interview_style?.toUpperCase()} ROUND)
             </span>
-            <span className="text-[11px] px-2 py-0.5 rounded-full font-bold uppercase bg-purple-500/10 text-purple-600 border border-purple-500/20">
-              {interview.interview_mode === 'conversational' ? 'Conversational Flow' : 'Q&A Drill Mode'}
+            <span className="text-[11px] font-mono text-theme-tertiary">
+              meet.google.com/mock-{interviewId.slice(0, 6)}
             </span>
           </div>
         </div>
 
-        {/* Timer, Hint & End Interview Controls */}
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={requestHint}
-            disabled={isSpeaking || isSubmitting}
-            className="flex items-center gap-1 px-3 py-1.5 bg-theme-surface border border-theme text-theme-secondary hover:text-theme-primary font-semibold text-xs rounded-xl shadow-sm transition-all"
-            title="Ask AI interviewer for a hint"
-          >
-            <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
-            <span>Need a Hint?</span>
-          </button>
-
-          <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-mono text-sm font-bold transition-all ${
-              isLowTime
-                ? 'bg-rose-500/10 text-rose-600 border-rose-500/30 animate-pulse'
-                : 'bg-theme-surface-alt border-theme text-theme-primary'
-            }`}
-          >
-            <Clock className="w-4 h-4" />
-            <span>{formatTimer(timeLeftSeconds)}</span>
-          </div>
-
-          <button
-            onClick={() => handleEndInterview()}
-            disabled={isSubmitting}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
-          >
-            <Square className="w-3.5 h-3.5 fill-current" />
-            <span>End Interview</span>
-          </button>
+        <div className="flex items-center gap-2 text-theme-secondary font-mono">
+          <Clock className="w-3.5 h-3.5 text-google-blue" />
+          <span className="font-medium">{formatTimer(timeLeftSeconds)} Remaining</span>
         </div>
       </div>
 
-      {/* Progress & Depth Bar */}
-      <div className="flex items-center justify-between text-xs text-theme-tertiary px-1">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-theme-secondary">
-            Topic {currentIdx + 1} of {questions.length}
-          </span>
-          {currentQuestion?.depth_level && (
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                depthColors[currentQuestion.depth_level] || depthColors.medium
-              }`}
-            >
-              {currentQuestion.depth_level} Level
-            </span>
-          )}
-          {currentQuestion?.question_text && (
-            <span className="text-[11px] text-theme-tertiary hidden md:inline truncate max-w-md">
-              • {currentQuestion.question_text}
-            </span>
-          )}
-        </div>
-        <div className="w-44 h-2 bg-theme-surface-alt rounded-full overflow-hidden border border-theme">
-          <div
-            className="h-full bg-theme-primary transition-all duration-300"
-            style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Active Hint Banner if candidate is paused / requested help */}
+      {/* Active Hint Banner */}
       {activeHint && (
-        <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between gap-3 animate-slide-up">
-          <div className="flex items-center gap-2 text-xs font-medium text-amber-700 dark:text-amber-300">
-            <Lightbulb className="w-4 h-4 flex-shrink-0 text-amber-500" />
+        <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs rounded-xl flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-amber-900 dark:text-amber-200 font-medium">
+            <Lightbulb className="w-4 h-4 text-google-yellow flex-shrink-0" />
             <span>Interviewer Hint: {activeHint}</span>
           </div>
           <button
             onClick={() => setActiveHint(null)}
-            className="text-xs text-amber-600 hover:underline font-semibold"
+            className="text-amber-700 dark:text-amber-300 hover:underline cursor-pointer"
           >
-            Got it
+            Dismiss
           </button>
         </div>
       )}
 
-      {/* SPLIT SCREEN INTERVIEW ROOM */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[500px]">
-        {/* LEFT PANEL: AI INTERVIEWER */}
-        <div className="card p-6 flex flex-col justify-between border border-theme shadow-md bg-gradient-to-b from-theme-surface to-theme-surface-alt/60 relative overflow-hidden">
-          {/* Top AI Persona */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="w-12 h-12 rounded-2xl bg-theme-primary-light flex items-center justify-center border border-theme-primary/30 shadow-sm">
-                  <Bot className="w-6 h-6 text-theme-primary-color" />
-                </div>
-                {isSpeaking && (
-                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-theme-primary opacity-75" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-theme-primary" />
-                  </span>
-                )}
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-theme-primary">AI Hiring Manager</h3>
-                <p className="text-xs text-theme-tertiary">
-                  {interview.interview_style === 'managerial'
-                    ? 'Engineering Director'
-                    : interview.interview_style === 'hr'
-                    ? 'Lead HR Business Partner'
-                    : 'Principal Software Architect (DSA & Architecture Lead)'}
-                </p>
-              </div>
-            </div>
+      {/* GOOGLE MEET VIDEO TILES STAGE (SPLIT SCREEN) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[460px]">
+        {/* TILE 1: GOOGLE AI INTERVIEWER */}
+        <div className="meet-tile p-6 flex flex-col justify-between relative bg-slate-900 text-white min-h-[380px]">
+          {/* Top Audio Repeat / Mute */}
+          <div className="flex items-center justify-between z-10">
+            <span className="text-xs font-medium bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full text-slate-200 flex items-center gap-1.5">
+              <Bot className="w-3.5 h-3.5 text-google-blue" />
+              <span>Google Hiring Committee</span>
+            </span>
 
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() =>
-                  isSpeaking
-                    ? stopSpeaking()
-                    : speakText(aiSpokenCaption || currentQuestion.question_text)
-                }
-                className="p-2 rounded-xl border border-theme hover:bg-theme-surface-hover text-theme-secondary transition-all"
-                title={isSpeaking ? 'Mute AI' : 'Repeat Question'}
-              >
-                {isSpeaking ? (
-                  <Volume2 className="w-4 h-4 text-theme-primary-color animate-pulse" />
-                ) : (
-                  <VolumeX className="w-4 h-4" />
-                )}
-              </button>
-            </div>
+            <button
+              onClick={() =>
+                isSpeaking
+                  ? stopSpeaking()
+                  : speakText(aiSpokenCaption || currentQuestion.question_text)
+              }
+              className="p-2 rounded-full bg-black/40 hover:bg-black/60 text-white transition-all cursor-pointer"
+              title={isSpeaking ? 'Mute AI' : 'Repeat Question'}
+            >
+              {isSpeaking ? (
+                <Volume2 className="w-4 h-4 text-google-blue animate-pulse" />
+              ) : (
+                <VolumeX className="w-4 h-4 text-slate-400" />
+              )}
+            </button>
           </div>
 
-          {/* AI Center Waveform Visualizer */}
-          <div className="my-auto py-8 text-center space-y-6">
-            <div className="flex items-center justify-center gap-1.5 h-16">
-              {[0.4, 0.8, 1.2, 0.6, 1.0, 0.7, 1.4, 0.9, 0.5].map((scale, i) => (
+          {/* Center Avatar & Waveform */}
+          <div className="my-auto py-8 text-center space-y-5">
+            <div className="relative inline-flex items-center justify-center">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 flex items-center justify-center text-white shadow-xl">
+                <Bot className="w-12 h-12" />
+              </div>
+              {isSpeaking && (
+                <span className="absolute inset-0 rounded-full border-4 border-blue-400 animate-ping opacity-75" />
+              )}
+            </div>
+
+            {/* Google Meet Speaking Wave Bars */}
+            <div className="flex items-center justify-center gap-1.5 h-10">
+              {[0.5, 1.2, 0.7, 1.6, 0.9, 1.4, 0.6, 1.1, 0.8].map((s, i) => (
                 <div
                   key={i}
-                  className={`w-1.5 rounded-full transition-all duration-200 ${
-                    isSpeaking
-                      ? 'bg-theme-primary animate-pulse'
-                      : 'bg-theme-surface-alt h-4'
+                  className={`w-1 rounded-full transition-all duration-150 ${
+                    isSpeaking ? 'bg-blue-400 animate-pulse' : 'bg-slate-700 h-2'
                   }`}
                   style={{
-                    height: isSpeaking ? `${Math.min(56, 18 * scale * 2.2)}px` : '12px',
-                    animationDelay: `${i * 0.12}s`,
+                    height: isSpeaking ? `${Math.min(36, 12 * s * 2)}px` : '6px',
+                    animationDelay: `${i * 0.1}s`,
                   }}
                 />
               ))}
             </div>
-
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-theme-tertiary">
-                {isSpeaking ? 'AI Interviewer Speaking...' : 'AI Listening Actively'}
-              </span>
-              <p className="text-xs text-theme-secondary max-w-sm mx-auto">
-                {isSpeaking
-                  ? 'Listen to the interviewer prompt. Feel free to ask for clarification or take a breath.'
-                  : 'Take your time. Speak naturally through your thought process.'}
-              </p>
-            </div>
           </div>
 
-          {/* AI Real-time Live Subtitles / Spoken Captions */}
-          <div className="p-4 rounded-2xl bg-theme-surface border border-theme shadow-sm space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-theme-primary-color flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> Interviewer Spoken Dialogue
-              </span>
-              <span className="text-[10px] text-theme-tertiary font-mono">TTS Audio</span>
+          {/* Google Meet Participant Bottom Label & Spoken Caption */}
+          <div className="z-10 space-y-2">
+            {captionsEnabled && (
+              <div className="p-3 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 text-xs text-slate-100 font-medium leading-relaxed">
+                "{aiSpokenCaption || currentQuestion?.question_text}"
+              </div>
+            )}
+            <div className="flex items-center justify-between text-xs text-slate-300">
+              <span className="font-medium">Google AI Interviewer (Principal Architect)</span>
+              {isSpeaking ? (
+                <span className="text-blue-400 font-medium flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                  Speaking
+                </span>
+              ) : (
+                <span className="text-slate-400">Listening</span>
+              )}
             </div>
-            <p className="text-sm font-medium text-theme-primary leading-relaxed">
-              "{aiSpokenCaption || currentQuestion?.question_text}"
-            </p>
           </div>
         </div>
 
-        {/* RIGHT PANEL: STUDENT / CANDIDATE */}
-        <div className="card p-6 flex flex-col justify-between border border-theme shadow-md bg-gradient-to-b from-theme-surface to-theme-surface-alt/60 relative overflow-hidden">
-          {/* Top Candidate Bar */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 font-bold">
-                <User className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-theme-primary">
-                  {profile?.name || 'Student Candidate'}
-                </h3>
-                <p className="text-xs text-theme-tertiary">
-                  Targeting {interview.role}
-                </p>
-              </div>
-            </div>
+        {/* TILE 2: CANDIDATE (YOU) */}
+        <div className="meet-tile p-6 flex flex-col justify-between relative bg-slate-950 text-white min-h-[380px]">
+          {/* Candidate Top Status */}
+          <div className="flex items-center justify-between z-10">
+            <span className="text-xs font-medium bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full text-slate-200 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-google-green" />
+              <span>You</span>
+            </span>
 
-            {/* Mic & Manual Toggle */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <button
                 onClick={() => setManualEditMode(!manualEditMode)}
-                className="p-2 rounded-xl border border-theme hover:bg-theme-surface-hover text-theme-secondary transition-all"
-                title="Edit transcript manually"
+                className="p-1.5 rounded-full bg-black/40 hover:bg-black/60 text-slate-300 transition-colors"
+                title="Edit transcript"
               >
-                <Edit3 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={toggleListening}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-semibold text-xs transition-all shadow-sm cursor-pointer ${
-                  isListening
-                    ? 'bg-rose-500 text-white animate-pulse'
-                    : 'bg-theme-surface border border-theme text-theme-secondary hover:text-theme-primary'
-                }`}
-              >
-                {isListening ? (
-                  <>
-                    <Mic className="w-4 h-4" />
-                    <span>Listening...</span>
-                  </>
-                ) : (
-                  <>
-                    <MicOff className="w-4 h-4" />
-                    <span>Mic Muted</span>
-                  </>
-                )}
+                <Edit3 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          {/* Real-time Student Spoken Captions & Live Transcription Box */}
-          <div className="my-4 flex-1 flex flex-col justify-center space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-theme-tertiary flex items-center gap-1">
-                <Mic className="w-3 h-3 text-theme-primary-color" /> Candidate Speech-to-Text (STT) Captions
-              </span>
-              {isListening && (
-                <span className="flex items-center gap-1 text-[11px] text-rose-500 font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                  Recording voice
-                </span>
-              )}
-            </div>
-
+          {/* Center Speech Stream or Avatar */}
+          <div className="my-auto py-4 flex flex-col justify-center space-y-3">
             {!manualEditMode ? (
-              <div className="p-4 rounded-2xl bg-theme-surface border border-theme min-h-[160px] max-h-[220px] overflow-y-auto space-y-2">
+              <div className="p-4 rounded-xl bg-slate-900/80 border border-white/10 min-h-[160px] max-h-[220px] overflow-y-auto space-y-2 text-xs">
                 {spokenTranscript || interimText ? (
-                  <p className="text-sm text-theme-primary leading-relaxed whitespace-pre-wrap">
+                  <p className="text-slate-100 leading-relaxed font-normal whitespace-pre-wrap">
                     {spokenTranscript}{' '}
-                    <span className="text-theme-tertiary italic">{interimText}</span>
+                    <span className="text-slate-400 italic">{interimText}</span>
                   </p>
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center py-8 text-theme-tertiary space-y-2">
-                    <Mic className="w-6 h-6 stroke-1" />
-                    <p className="text-xs">
+                  <div className="h-full flex flex-col items-center justify-center text-center py-6 text-slate-400 space-y-2">
+                    <Mic className="w-6 h-6 stroke-1 text-slate-500" />
+                    <p className="text-xs font-medium text-slate-300">
                       {isListening
-                        ? 'Speak into your microphone. Words stream live here.'
-                        : 'Click "Start Talking" or unmute your mic to answer.'}
+                        ? 'Microphone active. Start speaking to answer.'
+                        : 'Unmute microphone below to talk.'}
                     </p>
-                    <p className="text-[11px] opacity-75">
-                      Need time? Take a pause—the AI will coach you gently without rush.
+                    <p className="text-[11px] text-slate-500">
+                      {interview.interview_style === 'gd'
+                        ? '5-minute non-stop group discussion speech.'
+                        : 'Speak naturally. Google AI responds when you pause.'}
                     </p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="space-y-1">
-                <textarea
-                  value={spokenTranscript}
-                  onChange={(e) => setSpokenTranscript(e.target.value)}
-                  placeholder="Type or edit your spoken response here..."
-                  className="w-full p-3 bg-theme-surface border border-theme rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-theme-primary h-36 resize-none"
-                />
-                <span className="text-[10px] text-theme-tertiary">
-                  Manual typing mode active.
-                </span>
-              </div>
+              <textarea
+                value={spokenTranscript}
+                onChange={(e) => setSpokenTranscript(e.target.value)}
+                placeholder="Type or edit your response..."
+                className="w-full p-3 bg-slate-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500 h-36 resize-none"
+              />
             )}
           </div>
 
-          {/* Candidate Action / Mode Specific Controls */}
-          {interview.interview_mode === 'conversational' ? (
-            <div className="pt-2 flex items-center justify-between p-3.5 bg-theme-surface-alt/70 border border-theme rounded-2xl">
-              <div className="flex items-center gap-3">
-                <div className="relative flex items-center justify-center">
-                  <span className={`w-3.5 h-3.5 rounded-full ${isListening ? 'bg-emerald-500 animate-ping' : 'bg-amber-500'}`} />
-                  <span className={`absolute w-3 h-3 rounded-full ${isListening ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                </div>
-                <div>
-                  <h5 className="text-xs font-bold text-theme-primary">
-                    {interview.interview_style === 'gd'
-                      ? 'GD Continuous Speaking — 5 Minutes Allotted'
-                      : isSpeaking
-                      ? 'AI Interviewer Speaking (Listening Paused)'
-                      : isListening
-                      ? 'Natural Voice Active — Speak Freely'
-                      : 'Connecting Audio...'}
-                  </h5>
-                  <p className="text-[11px] text-theme-tertiary">
-                    {interview.interview_style === 'gd'
-                      ? 'Microphone is continuously recording. Speak non-stop covering Intro, For, Against, and Conclusion.'
-                      : 'Hands-free dynamic conversation: AI detects when you finish and responds automatically.'}
-                  </p>
-                </div>
-              </div>
+          {/* Candidate Bottom Label */}
+          <div className="z-10 flex items-center justify-between text-xs text-slate-300">
+            <span className="font-medium">{profile?.name || 'Candidate (You)'}</span>
+            {isListening ? (
+              <span className="text-google-green font-medium flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-google-green animate-ping" />
+                Mic On
+              </span>
+            ) : (
+              <span className="text-google-red font-medium flex items-center gap-1">
+                <MicOff className="w-3.5 h-3.5" />
+                Muted
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={toggleListening}
-                  className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                    isListening
-                      ? 'bg-theme-surface border-theme text-theme-secondary hover:text-theme-primary'
-                      : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
-                  }`}
-                  title={isListening ? 'Mute microphone' : 'Unmute microphone'}
-                >
-                  {isListening ? <Mic className="w-4 h-4 text-emerald-500" /> : <MicOff className="w-4 h-4 text-rose-500" />}
-                  <span className="hidden sm:inline">{isListening ? 'Mute' : 'Unmute'}</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
-              <button
-                onClick={toggleListening}
-                className={`w-full sm:flex-1 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  isListening
-                    ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                    : 'bg-theme-surface border border-theme text-theme-primary hover:bg-theme-surface-hover'
-                }`}
-              >
-                {isListening ? (
-                  <>
-                    <Square className="w-3.5 h-3.5 fill-current" />
-                    <span>Pause Mic</span>
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-3.5 h-3.5" />
-                    <span>Start Talking (Mic)</span>
-                  </>
-                )}
-              </button>
+      {/* GOOGLE MEET BOTTOM FLOATING CALL CONTROL BAR */}
+      <div className="py-3 px-6 rounded-full bg-theme-surface border border-theme shadow-lg flex items-center justify-between max-w-2xl mx-auto">
+        {/* Left: Meeting Time & Topic */}
+        <div className="flex items-center gap-2 text-xs font-medium text-theme-secondary hidden sm:flex">
+          <span className="font-mono text-theme-primary">{formatTimer(timeLeftSeconds)}</span>
+          <span>•</span>
+          <span>
+            {interview.interview_style === 'gd' ? 'Group Discussion' : `Question ${currentIdx + 1} of ${questions.length}`}
+          </span>
+        </div>
 
-              <button
-                onClick={() => handleSendSpokenResponse()}
-                disabled={isSubmitting}
-                className="w-full sm:flex-1 py-3 px-4 bg-theme-primary hover:bg-theme-primary-hover disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader className="w-4 h-4 animate-spin" />
-                    <span>Processing Response...</span>
-                  </>
-                ) : currentIdx + 1 < questions.length ? (
-                  <>
-                    <span>Send & Continue</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Complete Interview</span>
-                  </>
-                )}
-              </button>
-            </div>
+        {/* Center: Google Meet Circular Controls */}
+        <div className="flex items-center gap-3 mx-auto sm:mx-0">
+          {/* Mic Button */}
+          <button
+            onClick={toggleListening}
+            className={`meet-ctrl-btn ${
+              isListening ? 'meet-ctrl-normal' : 'meet-ctrl-danger'
+            }`}
+            title={isListening ? 'Turn off microphone' : 'Turn on microphone'}
+          >
+            {isListening ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+          </button>
+
+          {/* Turn Captions On/Off (CC) */}
+          <button
+            onClick={() => setCaptionsEnabled(!captionsEnabled)}
+            className={`meet-ctrl-btn ${
+              captionsEnabled ? 'meet-ctrl-active' : 'meet-ctrl-normal'
+            }`}
+            title="Toggle closed captions"
+          >
+            <span className="font-bold text-xs font-mono">CC</span>
+          </button>
+
+          {/* Raise Hand / Need Hint */}
+          {interview.interview_style !== 'gd' && (
+            <button
+              onClick={requestHint}
+              disabled={isSpeaking || isSubmitting}
+              className="meet-ctrl-btn meet-ctrl-normal"
+              title="Raise hand for interviewer hint"
+            >
+              <Hand className="w-5 h-5" />
+            </button>
           )}
+
+          {/* Non-conversational mode: Send Turn Button */}
+          {interview.interview_mode === 'structured' && interview.interview_style !== 'gd' && (
+            <button
+              onClick={() => handleSendSpokenResponse()}
+              disabled={isSubmitting}
+              className="px-4 py-2 bg-google-blue hover:bg-blue-700 text-white rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <span>Submit Answer</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* End Call Button (Red Google Meet Pill) */}
+          <button
+            onClick={() => handleEndInterview()}
+            disabled={isSubmitting}
+            className="meet-ctrl-btn meet-ctrl-danger"
+            title="Leave call"
+          >
+            <PhoneOff className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Right: Mode status */}
+        <div className="hidden sm:flex items-center gap-1.5 text-xs text-theme-tertiary">
+          <span className="w-2 h-2 rounded-full bg-google-green" />
+          <span>{interview.interview_style === 'gd' ? '5m GD' : 'Google Meet'}</span>
         </div>
       </div>
     </div>

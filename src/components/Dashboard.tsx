@@ -11,29 +11,23 @@ import { parsePdf } from '../utils/pdfParser';
 import {
   Upload,
   FileText,
-  Play,
-  RotateCcw,
   Sparkles,
-  Calendar,
   ArrowRight,
   X,
-  Clock,
   Briefcase,
   Users,
   Code2,
   Sliders,
   Check,
   Award,
-  BarChart2,
-  MessageSquare,
-  ListOrdered,
   FolderGit2,
   Target,
   AlertTriangle,
   Lightbulb,
-  Building2,
-  Trophy,
   Radio,
+  ChevronRight,
+  Flame,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -55,13 +49,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showPasteArea, setShowPasteArea] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  // Setup Form States
+  // Session Setup Form States
   const [targetRole, setTargetRole] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('Mid-Level');
   const [interviewStyle, setInterviewStyle] = useState<InterviewStyle>('technical');
   const [interviewMode, setInterviewMode] = useState<InterviewMode>('conversational');
   const [durationMinutes, setDurationMinutes] = useState(15);
-  const [questionCount, setQuestionCount] = useState(5);
+  const [questionCount] = useState(5);
   const [isCreatingInterview, setIsCreatingInterview] = useState(false);
 
   useEffect(() => {
@@ -88,7 +82,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (!file) return;
 
     if (!getGroqApiKey()) {
-      setUploadError('Please configure your Groq API Key in settings first.');
+      setUploadError('Please configure your Google Workspace / Groq API Key in settings first.');
       onOpenSettings();
       return;
     }
@@ -117,7 +111,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (!pasteText.trim()) return;
 
     if (!getGroqApiKey()) {
-      setUploadError('Please configure your Groq API Key in settings first.');
+      setUploadError('Please configure your Google Workspace / Groq API Key in settings first.');
       onOpenSettings();
       return;
     }
@@ -158,18 +152,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
       setTargetRole(savedProfile.target_role);
       setExperienceLevel(savedProfile.experience_level);
     } catch (err: any) {
-      console.error('Resume parsing failed:', err);
-      setUploadError(err.message || 'Failed to analyze resume.');
+      console.error(err);
+      setUploadError(err.message || 'Error analyzing resume with Google AI.');
     } finally {
       setIsParsing(false);
     }
   };
 
-  const handleStartInterview = async () => {
-    if (!profile) return;
+  const handleStartSession = async () => {
+    if (!profile) {
+      setUploadError('Please upload or import your resume from Google Drive first to calibrate questions.');
+      return;
+    }
 
     if (!getGroqApiKey()) {
-      setUploadError('Please configure your Groq API Key in settings to proceed.');
+      setUploadError('Please configure your API Key in settings to proceed.');
       onOpenSettings();
       return;
     }
@@ -224,252 +221,226 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const interviewStylesList = [
     {
       id: 'technical' as InterviewStyle,
-      name: 'Technical Round (DSA, Projects & Stack)',
+      name: 'Technical Round',
+      subtitle: 'DSA, Code & System Architecture',
       icon: Code2,
-      desc: 'Coding, Data Structures & Algorithms, candidate project architecture, and tech stack internals.',
+      accentColor: '#1a73e8', // Google Blue
+      badge: 'L4 / L5 SWE Bar',
+      desc: 'Coding fundamentals, time/space trade-offs, architecture decisions from resume projects, and tech stack mechanics.',
     },
     {
       id: 'managerial' as InterviewStyle,
-      name: 'Managerial & Architecture Round',
+      name: 'Managerial Round',
+      subtitle: 'Engineering Leadership & Trade-offs',
       icon: Users,
-      desc: 'Project ownership, system trade-offs, cross-functional conflicts, and engineering prioritization.',
+      accentColor: '#34a853', // Google Green
+      badge: 'Director Persona',
+      desc: 'Delivery deadlines, resolving cross-functional friction with PMs, technical debt versus speed, and code mentoring.',
     },
     {
       id: 'hr' as InterviewStyle,
-      name: 'HR & Culture Fit Round',
+      name: 'Googliness & Culture',
+      subtitle: 'Values, Ethics & Collaboration',
       icon: Briefcase,
-      desc: 'Behavioral STAR scenarios, company culture alignment, career vision, and communication style.',
+      accentColor: '#fbbc04', // Google Yellow
+      badge: 'People Partner',
+      desc: 'Googliness, navigating ambiguity, inclusive team collaboration, career motivation, and behavioral STAR situations.',
     },
     {
       id: 'gd' as InterviewStyle,
-      name: 'Group Discussion (GD) Round - 5 Mins',
+      name: 'Group Discussion (GD)',
+      subtitle: '5-Min Structured Continuous Talk',
       icon: Radio,
-      desc: 'Contemporary trending GD topic. Deliver a 5-minute structured speech (Intro, For, Against, Conclusion). Non-stop talk.',
+      accentColor: '#ea4335', // Google Red
+      badge: 'Campus & Campus Drives',
+      desc: 'Trending contemporary topic. Uninterrupted 5-minute speech evaluating Introduction, Points For, Points Against, and Conclusion.',
     },
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
-      {/* Error Alert */}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in font-google">
+      {/* Google Workspace Alert Notification */}
       {uploadError && (
-        <div className="flex items-center justify-between p-4 bg-theme-danger border border-theme-danger text-theme-danger rounded-xl animate-slide-up shadow-sm">
+        <div className="flex items-center justify-between p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 rounded-xl animate-slide-up shadow-2xs">
           <div className="flex items-center gap-3">
-            <X className="w-5 h-5 flex-shrink-0" />
+            <AlertTriangle className="w-5 h-5 flex-shrink-0 text-google-red" />
             <span className="text-sm font-medium">{uploadError}</span>
           </div>
           <button
             onClick={() => setUploadError(null)}
-            className="text-sm font-medium text-theme-danger hover:opacity-80 transition-colors"
+            className="p-1 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg transition-colors cursor-pointer"
           >
-            Dismiss
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Header Banner */}
-      <div className="card p-8 bg-gradient-to-br from-theme-surface via-theme-surface to-theme-surface-alt border border-theme shadow-sm relative overflow-hidden">
-        <div className="max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-theme-primary-light text-theme-primary-color border border-theme-primary/20">
+      {/* Google Workspace Product Banner / Overview */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-2">
+        <div className="space-y-1.5 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-google-blue dark:text-blue-400 text-xs font-medium">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>AI Voice Mock Interview Platform (Groq Powered)</span>
+            <span>Google Workspace • Hiring Simulation Hub</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-theme-primary">
-            Master Technical, DSA, and Project Hiring Interviews
+          <h1 className="text-3xl sm:text-4xl font-normal text-theme-primary tracking-tight">
+            Practice Real Voice Interviews with Google AI.
           </h1>
-          <p className="text-sm text-theme-secondary leading-relaxed">
-            Experience authentic corporate interviews with conversational AI that adapts to your answers, probes your real resume projects, checks DSA fundamentals, and gently coaches you through natural pauses.
+          <p className="text-sm sm:text-base text-theme-secondary leading-relaxed">
+            Prepare for Google and top tech company hiring rounds. Calibrate DSA, system design, leadership trade-offs, and 5-minute group discussions with adaptive voice intelligence.
           </p>
+        </div>
+
+        {/* Google Drive / Meet Style Stats Card */}
+        <div className="flex items-center gap-3 self-start md:self-auto">
+          <div className="p-4 rounded-2xl bg-theme-surface border border-theme shadow-2xs flex items-center gap-5">
+            <div>
+              <span className="text-xs text-theme-tertiary block font-medium">
+                Practice Sessions
+              </span>
+              <span className="text-2xl font-normal text-theme-primary font-google">
+                {interviews.length}
+              </span>
+            </div>
+            <div className="h-8 w-px bg-theme-border" />
+            <div>
+              <span className="text-xs text-theme-tertiary block font-medium">
+                Google Bar Score
+              </span>
+              <span className="text-2xl font-normal text-google-green dark:text-emerald-400 font-google">
+                {interviews.length > 0
+                  ? Math.round(
+                      interviews.reduce((acc, curr) => acc + (curr.overall_score || 0), 0) /
+                        interviews.length
+                    ) + '%'
+                  : 'N/A'}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Main Grid */}
+      {/* 2-COLUMN SECTION: GOOGLE DRIVE RESUME IMPORT + CANDIDATE DOSSIER */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Resume Deep Scan & Analytics */}
-        <div className="lg:col-span-7 space-y-6">
-          {!profile && !isUploading && !isParsing ? (
-            <div className="card p-8 text-center space-y-6">
-              <div className="w-16 h-16 mx-auto bg-theme-primary-light rounded-2xl flex items-center justify-center">
-                <Upload className="w-8 h-8 text-theme-primary-color" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-theme-primary">Upload Resume for Deep AI Scan</h3>
-                <p className="text-xs sm:text-sm text-theme-secondary max-w-md mx-auto">
-                  Groq scans projects, tech stacks, and highlights critical technical gaps (DSA, architecture, edge cases) tailored for hiring.
-                </p>
+        {/* LEFT COLUMN: RESUME INGESTION (GOOGLE DRIVE STYLE) (5 COLS) */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="google-card p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-google-blue">
+                  <FileText className="w-5 h-5 stroke-[1.8]" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-theme-primary">Google Drive & Document Import</h3>
+                  <p className="text-xs text-theme-tertiary">Ingest your PDF or text resume</p>
+                </div>
               </div>
 
-              {!showPasteArea ? (
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <label className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-theme-primary hover:bg-theme-primary-hover text-white font-medium rounded-xl cursor-pointer transition-all shadow-sm">
-                    <FileText className="w-4 h-4" />
-                    <span>Upload Resume (PDF, TXT)</span>
-                    <input
-                      type="file"
-                      accept=".pdf,.txt,.md"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                  </label>
-                  <button
-                    onClick={() => setShowPasteArea(true)}
-                    className="w-full sm:w-auto px-5 py-2.5 border border-theme text-theme-secondary rounded-xl hover:bg-theme-surface-hover font-medium text-sm transition-colors"
-                  >
-                    Paste Text
-                  </button>
+              {profile && (
+                <span className="google-chip bg-green-50 dark:bg-green-950/60 text-google-green border border-green-200 dark:border-green-800 text-xs">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Calibrated</span>
+                </span>
+              )}
+            </div>
+
+            {/* Google Drive Dropzone */}
+            <div className="relative group">
+              <label className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-theme rounded-2xl bg-theme-surface-alt/60 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 hover:border-google-blue transition-all cursor-pointer">
+                <input
+                  type="file"
+                  accept=".pdf,.txt,.md"
+                  onChange={handleFileUpload}
+                  disabled={isUploading || isParsing}
+                  className="sr-only"
+                />
+                <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 border border-theme flex items-center justify-center text-google-blue shadow-2xs mb-3 group-hover:scale-105 transition-transform">
+                  <Upload className="w-5 h-5 stroke-[1.8]" />
                 </div>
-              ) : (
-                <form onSubmit={handleTextSubmit} className="space-y-3">
+                <span className="text-sm font-medium text-theme-primary">
+                  {isUploading || isParsing ? 'Analyzing with Google Gemini / LPU...' : 'Upload Resume Document'}
+                </span>
+                <span className="text-xs text-theme-tertiary mt-1 text-center">
+                  Drag and drop PDF/TXT or import from Google Drive
+                </span>
+              </label>
+            </div>
+
+            {/* Plaintext Option */}
+            <div className="pt-1">
+              <button
+                onClick={() => setShowPasteArea(!showPasteArea)}
+                className="w-full py-2 px-3 text-xs font-medium text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover rounded-xl border border-theme transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>{showPasteArea ? 'Hide Plaintext Box' : 'Or Paste Raw Resume Text'}</span>
+              </button>
+
+              {showPasteArea && (
+                <form onSubmit={handleTextSubmit} className="mt-3 space-y-3 animate-slide-up">
                   <textarea
+                    rows={5}
                     value={pasteText}
                     onChange={(e) => setPasteText(e.target.value)}
-                    placeholder="Paste resume content here..."
-                    className="w-full h-40 p-3 bg-theme-surface-alt border border-theme rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-theme-primary resize-none"
+                    placeholder="Paste resume or LinkedIn profile content here..."
+                    className="w-full p-3 bg-theme-surface border border-theme rounded-xl text-xs focus:outline-none focus:border-google-blue"
                   />
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowPasteArea(false)}
-                      className="btn-secondary text-xs"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={!pasteText.trim()}
-                      className="btn-primary text-xs"
-                    >
-                      Start Deep Scan
-                    </button>
-                  </div>
+                  <button
+                    type="submit"
+                    disabled={isUploading || isParsing || !pasteText.trim()}
+                    className="w-full btn-google-primary text-xs py-2"
+                  >
+                    {isParsing ? 'Analyzing Content...' : 'Extract Experience & Skills'}
+                  </button>
                 </form>
               )}
             </div>
-          ) : isUploading || isParsing ? (
-            <div className="card p-12 text-center space-y-4">
-              <div className="w-10 h-10 border-4 border-theme-primary border-t-transparent rounded-full animate-spin mx-auto" />
-              <h4 className="font-semibold text-theme-primary">Performing Deep Resume & Project Scan...</h4>
-              <p className="text-xs text-theme-tertiary">
-                Extracting projects, architecture details, tech stack nuances, and identifying key DSA/system gaps with Groq AI.
-              </p>
+          </div>
+
+          {/* Google Assessment Tip */}
+          <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-1.5">
+            <div className="flex items-center gap-2 text-xs font-medium text-amber-900 dark:text-amber-200">
+              <Lightbulb className="w-4 h-4 text-google-yellow flex-shrink-0" />
+              <span>Google Interview Tip</span>
             </div>
-          ) : (
-            <div className="card p-6 space-y-5">
-              <div className="flex items-center justify-between">
+            <p className="text-xs text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
+              Google technical interviewers look for structured problem solving, clarifying questions before writing code, and clear discussion of time/space complexity tradeoffs.
+            </p>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: CANDIDATE PROFILE & DETECTED FOCUS (7 COLS) */}
+        <div className="lg:col-span-7 space-y-6">
+          {profile ? (
+            <div className="google-card p-6 space-y-6">
+              {/* Profile Bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-theme">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-theme-primary-light rounded-xl flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-theme-primary-color" />
+                  <div className="w-11 h-11 rounded-full bg-google-blue text-white font-medium flex items-center justify-center text-base shadow-2xs">
+                    {profile.name.charAt(0)}
                   </div>
                   <div>
-                    <h3 className="font-bold text-theme-primary text-base">Candidate Profile & Projects Scanned</h3>
+                    <h3 className="text-base font-medium text-theme-primary">{profile.name}</h3>
                     <p className="text-xs text-theme-tertiary">
-                      Target Role: <span className="font-semibold text-theme-secondary">{profile?.target_role}</span> ({profile?.experience_level})
+                      Target Role: <span className="font-medium text-theme-primary">{profile.target_role}</span> • {profile.experience_level}
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setProfile(null)}
-                  className="flex items-center gap-1 text-xs text-theme-tertiary hover:text-theme-primary transition-colors"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Rescan Resume</span>
-                </button>
+
+                <span className="text-xs font-mono px-3 py-1 rounded-full bg-theme-surface-alt border border-theme text-theme-secondary self-start sm:self-auto">
+                  {profile.skills.length} Skills Verified
+                </span>
               </div>
 
-              {/* Extracted Projects Section */}
-              {profile?.extracted_projects && profile.extracted_projects.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-theme-tertiary uppercase tracking-wider flex items-center gap-1.5">
-                    <FolderGit2 className="w-3.5 h-3.5 text-blue-500" /> Extracted Resume Projects (Targeted for Interview)
-                  </span>
-                  <div className="space-y-2">
-                    {profile.extracted_projects.map((proj, idx) => (
-                      <div key={idx} className="p-3 bg-theme-surface-alt/60 border border-theme rounded-xl space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <h5 className="text-xs font-bold text-theme-primary">{proj.name}</h5>
-                          <div className="flex gap-1 flex-wrap">
-                            {proj.technologies.slice(0, 4).map((tech, tIdx) => (
-                              <span key={tIdx} className="text-[10px] px-1.5 py-0.5 rounded bg-theme-surface border border-theme text-theme-secondary font-mono">
-                                {tech}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        <p className="text-[11px] text-theme-secondary leading-snug">{proj.description}</p>
-                        {proj.potentialQuestions && proj.potentialQuestions.length > 0 && (
-                          <div className="pt-1 text-[10px] text-theme-tertiary italic">
-                            Expected prompt: "{proj.potentialQuestions[0]}"
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Extracted Work Experience Section */}
-              {profile?.extracted_experience && profile.extracted_experience.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-theme-tertiary uppercase tracking-wider flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-indigo-500" /> Extracted Work Experience & Roles
-                  </span>
-                  <div className="space-y-2">
-                    {profile.extracted_experience.map((exp, idx) => (
-                      <div key={idx} className="p-3 bg-theme-surface-alt/60 border border-theme rounded-xl space-y-1">
-                        <div className="flex items-center justify-between">
-                          <h5 className="text-xs font-bold text-theme-primary">
-                            {exp.role} • <span className="font-normal text-theme-secondary">{exp.company}</span>
-                          </h5>
-                          {exp.duration && (
-                            <span className="text-[10px] text-theme-tertiary font-mono">
-                              {exp.duration}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-theme-secondary leading-snug">{exp.description}</p>
-                        {exp.keyContributions && exp.keyContributions.length > 0 && (
-                          <div className="flex flex-wrap gap-1 pt-1">
-                            {exp.keyContributions.map((kc, kIdx) => (
-                              <span key={kIdx} className="text-[10px] px-1.5 py-0.5 rounded bg-theme-surface border border-theme text-theme-tertiary">
-                                • {kc}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Extracted Achievements Section */}
-              {profile?.extracted_achievements && profile.extracted_achievements.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-theme-tertiary uppercase tracking-wider flex items-center gap-1.5">
-                    <Trophy className="w-3.5 h-3.5 text-amber-500" /> Standout Achievements & Accolades
-                  </span>
-                  <div className="space-y-2">
-                    {profile.extracted_achievements.map((ach, idx) => (
-                      <div key={idx} className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl space-y-0.5">
-                        <h5 className="text-xs font-bold text-theme-primary flex items-center gap-1.5">
-                          <span>🏆</span> {ach.title}
-                        </h5>
-                        <p className="text-[11px] text-theme-secondary leading-snug">{ach.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Skills Tags */}
+              {/* Skills Cloud */}
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-theme-tertiary uppercase tracking-wider">
-                  Extracted Core Tech Stacks
+                <span className="text-xs font-medium text-theme-tertiary block">
+                  Identified Technical Stack
                 </span>
                 <div className="flex flex-wrap gap-1.5">
-                  {profile?.skills.map((skill, idx) => (
+                  {profile.skills.map((skill, i) => (
                     <span
-                      key={idx}
-                      className="px-2.5 py-1 text-xs font-medium rounded-lg bg-theme-surface-alt border border-theme text-theme-secondary"
+                      key={i}
+                      className="px-3 py-1 rounded-lg text-xs font-medium bg-theme-surface-alt border border-theme text-theme-primary hover:border-google-blue transition-colors"
                     >
                       {skill}
                     </span>
@@ -477,362 +448,322 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
               </div>
 
-              {/* HIGH PRIORITY FOCUS AREAS & CRITICAL GAPS */}
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold text-theme-tertiary uppercase tracking-wider flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> Targeted Interview Focus Areas & Critical Gaps
-                </span>
+              {/* Ingested Resume Projects */}
+              {profile.extracted_projects && profile.extracted_projects.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-theme-tertiary flex items-center gap-1.5">
+                      <FolderGit2 className="w-3.5 h-3.5 text-google-blue" />
+                      <span>Resume Projects Ingested for Live Coding Discussion</span>
+                    </span>
+                    <span className="text-xs text-theme-tertiary font-mono">
+                      {profile.extracted_projects.length} Projects
+                    </span>
+                  </div>
 
-                {profile?.detailed_focus_areas && profile.detailed_focus_areas.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {profile.extracted_projects.slice(0, 4).map((p, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-xl bg-theme-surface-alt/70 border border-theme space-y-1.5"
+                      >
+                        <h4 className="text-xs font-medium text-theme-primary truncate">{p.name}</h4>
+                        <p className="text-xs text-theme-secondary line-clamp-2 leading-relaxed">
+                          {p.description}
+                        </p>
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {p.technologies.slice(0, 3).map((t, ti) => (
+                            <span
+                              key={ti}
+                              className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-theme-surface border border-theme text-theme-tertiary"
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Priority Focus Areas */}
+              {profile.detailed_focus_areas && profile.detailed_focus_areas.length > 0 && (
+                <div className="space-y-2.5">
+                  <span className="text-xs font-medium text-google-yellow flex items-center gap-1.5">
+                    <Flame className="w-3.5 h-3.5" />
+                    <span>Targeted Interview Focus Areas</span>
+                  </span>
+
                   <div className="space-y-2">
-                    {profile.detailed_focus_areas.map((gap, idx) => (
-                      <div key={idx} className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl space-y-1">
+                    {profile.detailed_focus_areas.slice(0, 3).map((area, ai) => (
+                      <div
+                        key={ai}
+                        className="p-3 rounded-xl bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 text-xs space-y-1"
+                      >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                            <Target className="w-3.5 h-3.5" /> {gap.topic}
-                          </span>
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
-                            {gap.category}
+                          <span className="font-medium text-theme-primary">{area.topic}</span>
+                          <span className="text-[10px] font-medium uppercase px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200">
+                            {area.category}
                           </span>
                         </div>
-                        <p className="text-[11px] text-theme-secondary">{gap.reason}</p>
-                        <p className="text-[11px] text-theme-tertiary flex items-center gap-1">
-                          <Lightbulb className="w-3 h-3 text-amber-500" /> Prep Advice: {gap.recommendedPrep}
+                        <p className="text-theme-secondary text-xs leading-relaxed">
+                          {area.reason}
                         </p>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="p-3 bg-theme-surface-alt rounded-xl text-xs text-theme-secondary">
-                    {profile?.focus_areas.join(', ')}
-                  </div>
-                )}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="h-full min-h-[360px] google-card flex items-center justify-center text-center p-8">
+              <div className="space-y-3 text-theme-tertiary max-w-sm">
+                <div className="w-14 h-14 rounded-full bg-theme-surface-alt border border-theme flex items-center justify-center mx-auto text-theme-tertiary">
+                  <Target className="w-6 h-6 stroke-[1.5]" />
+                </div>
+                <h4 className="text-base font-medium text-theme-primary">No Candidate Resume Loaded</h4>
+                <p className="text-xs text-theme-secondary leading-relaxed">
+                  Upload your resume on the left to extract your engineering background, verified skills, and customize your mock interview questions.
+                </p>
               </div>
             </div>
           )}
-
-          {/* Past Mock Interviews Dashboard History */}
-          <div className="space-y-4 pt-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <BarChart2 className="w-4 h-4 text-theme-primary-color" />
-                <h3 className="text-base font-bold text-theme-primary">Interview Performance History</h3>
-              </div>
-              <span className="text-xs text-theme-tertiary">
-                {interviews.length} sessions
-              </span>
-            </div>
-
-            {interviews.length === 0 ? (
-              <div className="text-xs sm:text-sm text-theme-tertiary italic p-6 bg-theme-surface-alt border border-theme border-dashed rounded-2xl text-center">
-                No mock interviews completed yet. Configure and launch your first AI interview!
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {interviews.map((iv) => {
-                  const isPassed = iv.passed ?? (iv.overall_score ? iv.overall_score >= 70 : null);
-                  return (
-                    <div
-                      key={iv.id}
-                      className="card card-hover p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-theme"
-                    >
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-bold text-theme-primary text-sm">{iv.role}</h4>
-                          <span className="px-2 py-0.5 text-[11px] font-semibold text-theme-secondary bg-theme-surface-alt border border-theme rounded-full">
-                            {iv.experience_level}
-                          </span>
-                          {iv.interview_style && (
-                            <span className="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-full bg-theme-primary-light text-theme-primary-color border border-theme-primary/20">
-                              {iv.interview_style}
-                            </span>
-                          )}
-                          {iv.interview_mode === 'conversational' && (
-                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/20">
-                              Conversational
-                            </span>
-                          )}
-                          {iv.status === 'completed' && isPassed !== null && (
-                            <span
-                              className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${
-                                isPassed
-                                  ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                                  : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
-                              }`}
-                            >
-                              {isPassed ? '✓ Passed' : '✗ Needs Prep'}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-4 text-xs text-theme-tertiary flex-wrap">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5" />
-                            {new Date(iv.created_at).toLocaleDateString()}
-                          </span>
-                          {iv.duration_minutes && (
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5" />
-                              {iv.duration_minutes} mins
-                            </span>
-                          )}
-                          {iv.overall_score !== null && (
-                            <span className="flex items-center gap-1 font-bold text-theme-primary-color">
-                              <Award className="w-3.5 h-3.5" />
-                              Score: {iv.overall_score}/100
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {iv.status === 'in_progress' ? (
-                          <button
-                            onClick={() => onStartInterview(iv.id)}
-                            className="btn-primary text-xs py-1.5 px-3"
-                          >
-                            <span>Resume</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => onViewEvaluation(iv.id)}
-                            className="btn-secondary text-xs py-1.5 px-3"
-                          >
-                            <span>View Full Report</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Column: Setup Mock Interview Configurator */}
-        <div className="lg:col-span-5">
-          <div className={`card p-6 space-y-6 border border-theme shadow-md ${!profile ? 'opacity-50 pointer-events-none' : ''}`}>
-            <div className="flex items-center justify-between pb-2 border-b border-theme">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 bg-theme-primary-light rounded-xl flex items-center justify-center">
-                  <Play className="w-4 h-4 text-theme-primary-color" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-base text-theme-primary">Configure Mock Interview</h3>
-                  <p className="text-[11px] text-theme-tertiary">Select mode & round parameters</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {/* INTERVIEW MODE SELECTOR (Natural Human vs Structured Drill) */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary">
-                  Interview Experience Mode
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setInterviewMode('conversational')}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      interviewMode === 'conversational'
-                        ? 'bg-theme-primary-light border-theme-primary ring-1 ring-theme-primary'
-                        : 'bg-theme-surface border-theme hover:border-theme-hover'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-theme-primary-color" />
-                      <span className="text-xs font-bold text-theme-primary">Natural Voice Flow</span>
-                    </div>
-                    <p className="text-[10px] text-theme-secondary mt-1">
-                      Human interviewer, handles pauses ("take your time"), gives hints if off-topic.
-                    </p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setInterviewMode('structured')}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      interviewMode === 'structured'
-                        ? 'bg-theme-primary-light border-theme-primary ring-1 ring-theme-primary'
-                        : 'bg-theme-surface border-theme hover:border-theme-hover'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <ListOrdered className="w-4 h-4 text-theme-primary-color" />
-                      <span className="text-xs font-bold text-theme-primary">Q&A Drill Mode</span>
-                    </div>
-                    <p className="text-[10px] text-theme-secondary mt-1">
-                      Targeted question count, step-by-step scoring, structured exam style.
-                    </p>
-                  </button>
-                </div>
-              </div>
-
-              {/* Target Role Title */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary">
-                  Target Company Role
-                </label>
-                <input
-                  type="text"
-                  value={targetRole}
-                  onChange={(e) => setTargetRole(e.target.value)}
-                  className="input-field text-sm"
-                  placeholder="e.g., Senior Full Stack Developer"
-                />
-              </div>
-
-              {/* Experience Level */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary">
-                  Candidate Experience Level
-                </label>
-                <select
-                  value={experienceLevel}
-                  onChange={(e) => setExperienceLevel(e.target.value)}
-                  className="input-field text-sm"
-                >
-                  <option value="Junior">Junior (0 - 2 years)</option>
-                  <option value="Mid-Level">Mid-Level (2 - 5 years)</option>
-                  <option value="Senior">Senior (5 - 8 years)</option>
-                  <option value="Lead">Lead / Principal (8+ years)</option>
-                </select>
-              </div>
-
-              {/* Interview Round Styles (Technical covers DSA, projects, stack) */}
-              <div className="space-y-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary">
-                  Interview Round Syllabus
-                </label>
-                <div className="grid grid-cols-1 gap-2">
-                  {interviewStylesList.map((style) => {
-                    const Icon = style.icon;
-                    const isSelected = interviewStyle === style.id;
-                    return (
-                      <button
-                        key={style.id}
-                        type="button"
-                        onClick={() => setInterviewStyle(style.id)}
-                        className={`text-left p-3 rounded-xl border transition-all flex items-start gap-3 ${
-                          isSelected
-                            ? 'bg-theme-primary-light border-theme-primary ring-1 ring-theme-primary'
-                            : 'bg-theme-surface border-theme hover:border-theme-hover'
-                        }`}
-                      >
-                        <div
-                          className={`p-2 rounded-lg mt-0.5 ${
-                            isSelected ? 'bg-theme-primary text-white' : 'bg-theme-surface-alt text-theme-secondary'
-                          }`}
-                        >
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 space-y-0.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-theme-primary">{style.name}</span>
-                            {isSelected && <Check className="w-3.5 h-3.5 text-theme-primary-color" />}
-                          </div>
-                          <p className="text-[11px] text-theme-secondary leading-tight">{style.desc}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Duration & Questions (Conditioned on Mode & Style) */}
-              {interviewStyle === 'gd' ? (
-                <div className="p-3.5 bg-blue-500/10 border border-blue-500/20 rounded-xl space-y-1">
-                  <div className="flex items-center justify-between text-xs font-bold text-blue-600 dark:text-blue-400">
-                    <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> 5-Minute Non-Stop Speech</span>
-                    <span className="bg-blue-500/20 px-2 py-0.5 rounded-full text-[10px] uppercase font-mono">Timed GD</span>
-                  </div>
-                  <p className="text-[11px] text-theme-secondary">
-                    AI presents 1 contemporary GD topic. You speak continuously for 5 minutes covering Intro, For, Against, and Conclusion. AI performs a multi-criteria evaluation at the end.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" /> Duration
-                    </label>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {[5, 10, 15, 20].map((mins) => (
-                        <button
-                          key={mins}
-                          type="button"
-                          onClick={() => setDurationMinutes(mins)}
-                          className={`py-1.5 text-xs font-semibold rounded-lg border transition-all ${
-                            durationMinutes === mins
-                              ? 'bg-theme-primary text-white border-theme-primary'
-                              : 'bg-theme-surface border-theme text-theme-secondary hover:bg-theme-surface-hover'
-                          }`}
-                        >
-                          {mins}m
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {interviewMode === 'structured' ? (
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary flex items-center gap-1">
-                        <Sliders className="w-3.5 h-3.5" /> Questions
-                      </label>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        {[3, 5, 8].map((num) => (
-                          <button
-                            key={num}
-                            type="button"
-                            onClick={() => setQuestionCount(num)}
-                            className={`py-1.5 text-xs font-semibold rounded-lg border transition-all ${
-                              questionCount === num
-                                ? 'bg-theme-primary text-white border-theme-primary'
-                                : 'bg-theme-surface border-theme text-theme-secondary hover:bg-theme-surface-hover'
-                            }`}
-                          >
-                            {num} Qs
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-1.5 flex flex-col justify-center">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary">
-                        Flow Pacing
-                      </label>
-                      <div className="p-2 rounded-lg bg-theme-surface-alt border border-theme text-[11px] text-theme-secondary">
-                        Adaptive Conversational Pacing (Dynamic AI Follow-ups)
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={handleStartInterview}
-              disabled={!profile || isCreatingInterview}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-theme-primary hover:bg-theme-primary-hover disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition-all cursor-pointer"
-            >
-              {isCreatingInterview ? (
-                <>
-                  <Sparkles className="w-5 h-5 animate-spin" />
-                  <span>Synthesizing Tailored Interview...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-5 h-5 fill-current" />
-                  <span>Start Live Voice Interview</span>
-                </>
-              )}
-            </button>
-          </div>
         </div>
       </div>
+
+      {/* GOOGLE CLASSROOM / FORMS STYLE SESSION LAUNCHER */}
+      <div className="google-card p-6 sm:p-8 space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-theme">
+          <div>
+            <span className="google-chip bg-blue-50 dark:bg-blue-950/50 text-google-blue border border-blue-200 dark:border-blue-800 mb-1">
+              Select Round
+            </span>
+            <h2 className="text-xl font-normal text-theme-primary tracking-tight">
+              Choose Interview Type & Assessment Parameters
+            </h2>
+            <p className="text-xs text-theme-secondary">
+              Conduct technical, leadership, culture, or group discussion hiring rounds
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-theme-tertiary">Target Role:</span>
+            <input
+              type="text"
+              value={targetRole}
+              onChange={(e) => setTargetRole(e.target.value)}
+              placeholder="e.g. Software Engineer (L4)"
+              className="px-3 py-1.5 bg-theme-surface border border-theme rounded-lg text-xs font-medium text-theme-primary focus:outline-none focus:border-google-blue"
+            />
+          </div>
+        </div>
+
+        {/* 4 Specialized Google Round Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {interviewStylesList.map((st) => {
+            const isSelected = interviewStyle === st.id;
+            const Icon = st.icon;
+
+            return (
+              <div
+                key={st.id}
+                onClick={() => setInterviewStyle(st.id)}
+                className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-4 ${
+                  isSelected
+                    ? 'bg-blue-50/50 dark:bg-blue-950/30 border-google-blue shadow-xs'
+                    : 'bg-theme-surface border-theme hover:bg-theme-surface-hover hover:border-theme-hover'
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center"
+                      style={{
+                        backgroundColor: isSelected ? st.accentColor : 'rgba(0,0,0,0.05)',
+                        color: isSelected ? '#ffffff' : st.accentColor,
+                      }}
+                    >
+                      <Icon className="w-5 h-5 stroke-[2]" />
+                    </div>
+                    <span className="text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full bg-theme-surface border border-theme text-theme-secondary">
+                      {st.badge}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-medium text-theme-primary">{st.name}</h4>
+                    <p className="text-xs font-medium text-google-blue mt-0.5">
+                      {st.subtitle}
+                    </p>
+                  </div>
+
+                  <p className="text-xs text-theme-secondary leading-relaxed">
+                    {st.desc}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-theme text-xs font-medium">
+                  <span className={isSelected ? 'text-google-blue font-medium' : 'text-theme-tertiary'}>
+                    {st.id === 'gd' ? '5 Mins Speech' : '5-6 Questions'}
+                  </span>
+                  {isSelected && <Check className="w-4 h-4 text-google-blue stroke-[2.5]" />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Additional Parameters (Non-GD) */}
+        {interviewStyle !== 'gd' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-theme">
+            {/* Mode Selector */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-theme-tertiary block">
+                Conversation Flow
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setInterviewMode('conversational')}
+                  className={`py-2 px-3 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                    interviewMode === 'conversational'
+                      ? 'btn-google-primary'
+                      : 'btn-google-outlined'
+                  }`}
+                >
+                  Conversational
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInterviewMode('structured')}
+                  className={`py-2 px-3 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                    interviewMode === 'structured'
+                      ? 'btn-google-primary'
+                      : 'btn-google-outlined'
+                  }`}
+                >
+                  Q&A Drill
+                </button>
+              </div>
+            </div>
+
+            {/* Experience Level */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-theme-tertiary block">
+                Seniority Level
+              </label>
+              <select
+                value={experienceLevel}
+                onChange={(e) => setExperienceLevel(e.target.value)}
+                className="w-full p-2.5 bg-theme-surface border border-theme rounded-xl text-xs font-medium text-theme-primary focus:outline-none focus:border-google-blue"
+              >
+                <option value="Junior (L3 / 0-2 yrs)">Junior (L3 / 0-2 yrs)</option>
+                <option value="Mid-Level (L4 / 3-5 yrs)">Mid-Level (L4 / 3-5 yrs)</option>
+                <option value="Senior (L5 / 5+ yrs)">Senior (L5 / 5+ yrs)</option>
+                <option value="Staff / Lead (L6+)">Staff / Lead (L6+)</option>
+              </select>
+            </div>
+
+            {/* Duration */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-theme-tertiary block">
+                Session Duration
+              </label>
+              <select
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                className="w-full p-2.5 bg-theme-surface border border-theme rounded-xl text-xs font-medium text-theme-primary focus:outline-none focus:border-google-blue"
+              >
+                <option value={10}>10 Minutes (Quick Screen)</option>
+                <option value={15}>15 Minutes (Standard Mock)</option>
+                <option value={30}>30 Minutes (Comprehensive Onsite)</option>
+              </select>
+            </div>
+          </div>
+        )}
+
+        {/* Start Interview Google Button CTA */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-theme">
+          <div className="flex items-center gap-2 text-xs text-theme-secondary">
+            <Sparkles className="w-4 h-4 text-google-blue" />
+            <span>
+              {interviewStyle === 'gd'
+                ? 'AI generates 1 contemporary trending topic for a non-stop 5-minute speech.'
+                : 'AI generates custom questions tailored to your skills and projects.'}
+            </span>
+          </div>
+
+          <button
+            onClick={handleStartSession}
+            disabled={isCreatingInterview}
+            className="btn-google-primary py-3 px-8 text-sm cursor-pointer group"
+          >
+            {isCreatingInterview ? (
+              <span>Connecting to Google Meet Room...</span>
+            ) : (
+              <>
+                <span>
+                  Join {interviewStyle === 'gd' ? 'Group Discussion' : 'Google Interview'} Room
+                </span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* SESSION LOG / RECENT GOOGLE EVALUATION DOSSIERS */}
+      {interviews.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Award className="w-5 h-5 text-google-blue" />
+              <h3 className="text-base font-medium text-theme-primary">Google Interview Evaluation History</h3>
+            </div>
+            <span className="text-xs text-theme-tertiary">
+              {interviews.length} Sessions Logged
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {interviews.map((iv) => (
+              <div
+                key={iv.id}
+                onClick={() => onViewEvaluation(iv.id)}
+                className="google-card p-5 flex flex-col justify-between space-y-4 cursor-pointer"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="google-chip bg-blue-50 dark:bg-blue-950/50 text-google-blue text-xs">
+                      {iv.interview_style || 'Technical'} Round
+                    </span>
+                    <span
+                      className={`text-xs font-mono font-medium px-2 py-0.5 rounded-full ${
+                        (iv.overall_score || 0) >= 70
+                          ? 'bg-green-50 text-google-green dark:bg-green-950/50'
+                          : 'bg-red-50 text-google-red dark:bg-red-950/50'
+                      }`}
+                    >
+                      {iv.overall_score !== null ? `${iv.overall_score}%` : 'In Progress'}
+                    </span>
+                  </div>
+
+                  <h4 className="text-sm font-medium text-theme-primary">{iv.role}</h4>
+                  <p className="text-xs text-theme-tertiary">
+                    Level: {iv.experience_level} • {new Date(iv.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-theme text-xs font-medium text-google-blue">
+                  <span>View Google Evaluation Dossier</span>
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
