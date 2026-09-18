@@ -27,6 +27,13 @@ export interface AchievementItem {
   description: string;
 }
 
+export interface ResumeMistakeItem {
+  issue: string;
+  impact: string;
+  suggestion: string;
+  category: 'formatting' | 'impact_metrics' | 'content' | 'technical_depth';
+}
+
 export interface Profile {
   id: string;
   name: string;
@@ -39,6 +46,8 @@ export interface Profile {
   extracted_projects?: ProjectItem[];
   extracted_experience?: ExperienceItem[];
   extracted_achievements?: AchievementItem[];
+  resume_mistakes?: ResumeMistakeItem[];
+  resume_tips?: string[];
   created_at: string;
 }
 

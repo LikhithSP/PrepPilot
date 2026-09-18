@@ -9,6 +9,7 @@ import type {
   ExperienceItem,
   AchievementItem,
   RoundCriteriaScore,
+  ResumeMistakeItem,
 } from './supabase';
 
 export const getGroqApiKey = (): string => {
@@ -124,8 +125,10 @@ export const groqService = {
     extractedProjects: ProjectItem[];
     extractedExperience: ExperienceItem[];
     extractedAchievements: AchievementItem[];
+    resumeMistakes: ResumeMistakeItem[];
+    resumeTips: string[];
   }> => {
-    const systemPrompt = `You are an elite Tech Hiring Committee Screener and Principal Staff Engineer at a tier-1 technology company.
+    const systemPrompt = `You are an elite Tech Hiring Committee Screener and Principal Staff Engineer at a tier-1 technology company (Google, Meta).
 Perform a thorough, deep analysis of the provided resume text.
 
 Scrutinize every line, project, past experience, and skill to extract:
@@ -149,6 +152,14 @@ Scrutinize every line, project, past experience, and skill to extract:
 7. High-Priority Focus Areas & Technical Gaps:
    Provide 4 to 6 critical improvement areas. Categorize them into "DSA", "Tech Stack", "Architecture", "Project Gaps", or "Communication".
    Point out exact reasons why the candidate needs improvement in this area and concrete recommended prep.
+8. Resume Critique & Mistakes Analysis:
+   Analyze flaws, omissions, or anti-patterns in this resume that cause candidate rejections in top-tier tech screening:
+   - "resumeMistakes": Array of objects:
+     - "issue": clear identification of the mistake (e.g., "Missing quantifiable impact metrics in Project Alpha", "Overly dense skill list without context", "Passive bullet phrasing")
+     - "impact": why this hurts the candidate in ATS or recruiter review
+     - "suggestion": concrete before/after recommendation to fix it
+     - "category": "formatting" | "impact_metrics" | "content" | "technical_depth"
+   - "resumeTips": 3 to 5 high-leverage bullet tips to elevate this specific resume to Google hiring standards.
 
 Return ONLY a JSON object matching this schema:
 {
@@ -189,6 +200,18 @@ Return ONLY a JSON object matching this schema:
       "title": "Hackathon Winner - Smart India Hackathon",
       "description": "Ranked 1st among 500+ teams building an AI triage pipeline."
     }
+  ],
+  "resumeMistakes": [
+    {
+      "issue": "Lack of quantitative business metrics in project bullets",
+      "impact": "Recruiters cannot gauge engineering scale or real-world user adoption.",
+      "suggestion": "Rewrite bullets using the XYZ formula: 'Accomplished [X], as measured by [Y], by doing [Z]'.",
+      "category": "impact_metrics"
+    }
+  ],
+  "resumeTips": [
+    "Highlight latency, throughput, or memory optimization numbers in your experience section.",
+    "Add direct GitHub repository links for your core full stack projects."
   ]
 }`;
 
@@ -211,6 +234,8 @@ Return ONLY a JSON object matching this schema:
         extractedProjects: Array.isArray(parsed.extractedProjects) ? parsed.extractedProjects : [],
         extractedExperience: Array.isArray(parsed.extractedExperience) ? parsed.extractedExperience : [],
         extractedAchievements: Array.isArray(parsed.extractedAchievements) ? parsed.extractedAchievements : [],
+        resumeMistakes: Array.isArray(parsed.resumeMistakes) ? parsed.resumeMistakes : [],
+        resumeTips: Array.isArray(parsed.resumeTips) ? parsed.resumeTips : [],
       };
     } catch (e) {
       console.error('Failed to parse deep resume JSON:', raw);

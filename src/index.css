@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   :root {
@@ -52,23 +53,23 @@
   }
 
   .dark {
-    /* Google Workspace Dark Theme */
+    /* Google Workspace Material 3 Dark Theme */
     --color-primary: 138 180 248;     /* Google Blue 300 #8ab4f8 */
     --color-primary-hover: 174 203 250;
-    --color-primary-light: 41 50 65;
+    --color-primary-light: 30 45 68;
     
-    --color-background: 32 33 36;     /* #202124 */
-    --color-background-alt: 41 42 45; /* #292a2d */
-    --color-surface: 48 49 52;        /* #303134 */
-    --color-surface-hover: 60 64 67;  /* #3c4043 */
-    --color-surface-alt: 41 42 45;
+    --color-background: 13 16 20;     /* Deep M3 Dark #0d1014 */
+    --color-background-alt: 20 24 31; /* #14181f */
+    --color-surface: 24 28 36;        /* M3 Elevated Card #181c24 */
+    --color-surface-hover: 32 38 48;  /* #202630 */
+    --color-surface-alt: 18 22 28;
     
     --color-text-primary: 232 234 237; /* Google Grey 100 #e8eaed */
     --color-text-secondary: 154 160 166; /* Google Grey 400 #9aa0a6 */
     --color-text-tertiary: 128 134 139;
     
-    --color-border: 60 64 67;         /* Google Grey 700 #3c4043 */
-    --color-border-hover: 95 99 104;
+    --color-border: 38 44 56;         /* Refined M3 outline #262c38 */
+    --color-border-hover: 55 64 80;
     
     --color-success: 129 201 149;     /* #81c995 */
     --color-success-bg: 30 50 40;

@@ -47,7 +47,7 @@ function App() {
   return (
     <div className="min-h-screen bg-theme-background text-theme-primary">
       {/* Official Google Workspace App Header */}
-      <header className="sticky top-0 z-40 bg-theme-surface border-b border-theme transition-colors shadow-2xs">
+      <header className="sticky top-0 z-40 bg-white dark:bg-[#0d1014] border-b border-theme transition-colors shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Google Brand Identity & Workspace Product Logo */}
@@ -69,62 +69,90 @@ function App() {
                 <span className="text-xl font-normal text-theme-primary tracking-tight font-google">
                   Google
                 </span>
-                <span className="text-xl font-medium text-theme-secondary font-google">
+                <span className="text-xl font-normal text-theme-secondary font-google">
                   Interview
-                </span>
-                <span className="ml-1.5 text-[11px] font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full">
-                  Workspace
                 </span>
               </div>
             </div>
 
-            {/* Google Drive / Meet Style Search & Engine Status Pill */}
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-theme-surface-alt border border-theme text-xs text-theme-secondary">
-              <span className="w-2 h-2 rounded-full bg-google-green animate-pulse" />
-              <span className="font-medium text-theme-primary">Google Cloud LPU Connected</span>
-              <span className="text-theme-tertiary">•</span>
-              <span className="text-[11px] font-mono text-theme-tertiary">Groq Accelerated Inference</span>
+            {/* Middle: Candidate Track Selector & Global Search Input */}
+            <div className="hidden lg:flex items-center gap-3 flex-1 max-w-xl mx-6">
+              {/* Candidate Sandbox Selector */}
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-theme-surface-alt border border-theme text-xs text-theme-secondary shrink-0 cursor-pointer hover:border-theme-hover transition-colors">
+                <span className="w-2 h-2 rounded-full bg-google-blue" />
+                <span className="font-medium text-theme-primary">Candidate Sandbox: AI/ML Track</span>
+                <svg className="w-3.5 h-3.5 text-theme-tertiary" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                </svg>
+              </div>
+
+              {/* Search Bar matching screenshot */}
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-theme-tertiary">
+                  <svg className="w-4 h-4 stroke-[2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search interviews, evaluations, dossiers, or rubrics..."
+                  className="w-full pl-9 pr-8 py-1.5 rounded-full bg-theme-surface-alt border border-theme text-xs text-theme-primary placeholder:text-theme-tertiary focus:outline-none focus:border-google-blue focus:bg-theme-surface transition-all"
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <span className="text-[11px] font-mono text-theme-tertiary bg-theme-surface border border-theme px-1.5 py-0.2 rounded">/</span>
+                </div>
+              </div>
             </div>
 
-            {/* Google Header Right Actions: Theme, Settings, Google Apps Waffle & Account Profile */}
-            <div className="flex items-center gap-1 sm:gap-2">
-              <button
-                onClick={toggleTheme}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover transition-colors cursor-pointer"
-                title={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
-              >
-                {theme === 'light' ? (
-                  <Moon className="w-5 h-5 stroke-[1.8]" />
-                ) : (
-                  <Sun className="w-5 h-5 stroke-[1.8]" />
-                )}
-              </button>
+            {/* Right Action Suite with LPU Status Pill */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Google Cloud LPU Connected status pill moved to the right */}
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-theme-surface-alt border border-theme text-xs text-theme-secondary shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-google-green animate-pulse" />
+                <span className="font-medium text-theme-primary">LPU Active</span>
+                <span className="text-theme-tertiary">•</span>
+                <span className="text-[11px] font-mono text-theme-tertiary">Groq</span>
+              </div>
 
-              <button
-                onClick={() => setIsSettingsOpen(true)}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover transition-colors cursor-pointer"
-                title="Settings & Google Workspace API"
-              >
-                <Settings className="w-5 h-5 stroke-[1.8]" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={toggleTheme}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover transition-colors cursor-pointer"
+                  title={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+                >
+                  {theme === 'light' ? (
+                    <Moon className="w-4 h-4 stroke-[1.8]" />
+                  ) : (
+                    <Sun className="w-4 h-4 stroke-[1.8]" />
+                  )}
+                </button>
 
-              {/* Google Apps (9 Dots Waffle Menu Icon) */}
-              <button
-                onClick={() => setPage('dashboard')}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover transition-colors cursor-pointer"
-                title="Google apps"
-              >
-                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                  <path d="M6 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-12 6c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-12 6c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-                </svg>
-              </button>
+                <button
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover transition-colors cursor-pointer"
+                  title="Settings & Google Workspace API"
+                >
+                  <Settings className="w-4 h-4 stroke-[1.8]" />
+                </button>
 
-              {/* Google Account Profile Avatar Circle */}
-              <div 
-                className="w-9 h-9 rounded-full bg-blue-600 text-white font-medium flex items-center justify-center text-sm shadow-xs select-none cursor-pointer ring-2 ring-blue-600/20"
-                title="Google Account: candidate@gmail.com"
-              >
-                S
+                {/* Google Apps (9 Dots Waffle Menu Icon) */}
+                <button
+                  onClick={() => setPage('dashboard')}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover transition-colors cursor-pointer"
+                  title="Google apps"
+                >
+                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <path d="M6 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-12 6c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-12 6c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                  </svg>
+                </button>
+
+                {/* Google Account Profile Avatar Circle */}
+                <div 
+                  className="w-8 h-8 rounded-full bg-blue-600 text-white font-medium flex items-center justify-center text-sm shadow-xs select-none cursor-pointer ring-2 ring-blue-600/20 ml-1"
+                  title="Google Account: candidate@gmail.com"
+                >
+                  S
+                </div>
               </div>
             </div>
           </div>
