@@ -256,6 +256,21 @@ You MUST cover the following pillars across the generated questions:
 5. Core Tech Stack In-Depth: Pick 2-3 specific technologies from their skills (${profile.skills.slice(0, 6).join(', ')}) and test deep internals (e.g., event loop, memory leaks, indexing, concurrency, DOM diffing).
 6. System Architecture & Scalability: Design question or edge-case handling (e.g., rate limiting, caching strategies, horizontal scaling).
 `;
+    } else if (style === 'gd') {
+      roundGuidance = `
+GROUP DISCUSSION (GD) ROUND SYLLABUS:
+Generate 1 single compelling, contemporary Group Discussion topic commonly asked in modern corporate campus & tech company hiring drives.
+Topics can span:
+- Artificial Intelligence & Automation: Threat to software jobs or booster of developer productivity?
+- Remote Work vs Return to Office: Impact on company innovation and employee well-being.
+- Data Privacy vs AI Innovation: Should generative models train on public user data without consent?
+- Electric Vehicles & Sustainable Tech: Are green technologies genuinely sustainable today?
+- Social Media Algorithms: Freedom of speech vs content moderation and societal polarization.
+- Moonlighting in Tech: Ethical violation or legitimate employee freedom?
+
+The question should be formatted clearly as:
+"Group Discussion Topic: [Topic Title]. Your Task: In your 5-minute talk, deliver a structured presentation covering: (1) An engaging Introduction defining the core issue, (2) Arguments and examples FOR / supporting the topic, (3) Arguments and counter-examples AGAINST the topic, and (4) A balanced, forward-looking Conclusion."
+`;
     } else if (style === 'managerial') {
       roundGuidance = `
 MANAGERIAL ROUND SYLLABUS:
@@ -508,6 +523,22 @@ Produce 4 specific criteria scores (0-100):
 2. "Core Tech Stack & Framework Internals": In-depth understanding of candidate's stated libraries/technologies.
 3. "System Architecture & Scalability": Scalable patterns, caching, concurrency, database design.
 4. "Resume Projects & Practical Experience": Depth of implementation in their past projects and work experience.
+`;
+    } else if (style === 'gd') {
+      roundCriteriaInstructions = `
+THIS IS A GROUP DISCUSSION (GD) ROUND EVALUATION ONLY:
+The candidate was given a contemporary GD topic and asked to speak for 5 minutes covering:
+(1) Introduction defining the problem,
+(2) Points FOR the topic with concrete examples,
+(3) Points AGAINST the topic with counter-arguments,
+(4) A balanced Conclusion.
+
+Evaluate purely based on COMMUNICATION, TOPIC KNOWLEDGE, CRITICAL THINKING, and 5-MINUTE STRUCTURED DELIVERY.
+Produce 4 specific criteria scores (0-100):
+1. "Communication & Spoken Articulation": Fluency, confidence, vocal clarity, tone, conciseness.
+2. "Topic Knowledge & Depth of Content": Understanding of facts, contemporary issues, statistics, and real-world examples.
+3. "Analytical Thinking & Bilateral Argumentation": Quality of points FOR and points AGAINST the topic, logical coherence.
+4. "Structured 5-Minute Delivery & Conclusion": Completeness of Introduction, Body arguments, time utilization, and crisp Conclusion.
 `;
     } else if (style === 'managerial') {
       roundCriteriaInstructions = `

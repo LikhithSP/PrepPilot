@@ -33,6 +33,7 @@ import {
   Lightbulb,
   Building2,
   Trophy,
+  Radio,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -175,23 +176,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
     setIsCreatingInterview(true);
     try {
+      const finalDuration = interviewStyle === 'gd' ? 5 : durationMinutes;
+
       // 1. Create Interview session in DB
       const interview = await db.createInterview({
         profile_id: profile.id,
         role: targetRole || profile.target_role || 'Software Engineer',
         experience_level: experienceLevel,
         interview_style: interviewStyle,
-        interview_mode: interviewMode,
-        duration_minutes: durationMinutes,
+        interview_mode: interviewStyle === 'gd' ? 'conversational' : interviewMode,
+        duration_minutes: finalDuration,
       });
 
-      // 2. Generate syllabus questions (DSA, Projects, Tech Stack, Architecture)
+      // 2. Generate syllabus questions (or GD topic)
       const generatedQuestions = await groqService.generateQuestions(
         profile,
         targetRole,
         experienceLevel,
         interviewStyle,
-        interviewMode === 'structured' ? questionCount : 5
+        interviewStyle === 'gd' ? 1 : interviewMode === 'structured' ? questionCount : 5
       );
 
       // 3. Save interview questions to DB
@@ -236,6 +239,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
       name: 'HR & Culture Fit Round',
       icon: Briefcase,
       desc: 'Behavioral STAR scenarios, company culture alignment, career vision, and communication style.',
+    },
+    {
+      id: 'gd' as InterviewStyle,
+      name: 'Group Discussion (GD) Round - 5 Mins',
+      icon: Radio,
+      desc: 'Contemporary trending GD topic. Deliver a 5-minute structured speech (Intro, For, Against, Conclusion). Non-stop talk.',
     },
   ];
 
@@ -733,63 +742,75 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
               </div>
 
-              {/* Duration & Questions (Conditioned on Mode) */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" /> Duration
-                  </label>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {[5, 10, 15, 20].map((mins) => (
-                      <button
-                        key={mins}
-                        type="button"
-                        onClick={() => setDurationMinutes(mins)}
-                        className={`py-1.5 text-xs font-semibold rounded-lg border transition-all ${
-                          durationMinutes === mins
-                            ? 'bg-theme-primary text-white border-theme-primary'
-                            : 'bg-theme-surface border-theme text-theme-secondary hover:bg-theme-surface-hover'
-                        }`}
-                      >
-                        {mins}m
-                      </button>
-                    ))}
+              {/* Duration & Questions (Conditioned on Mode & Style) */}
+              {interviewStyle === 'gd' ? (
+                <div className="p-3.5 bg-blue-500/10 border border-blue-500/20 rounded-xl space-y-1">
+                  <div className="flex items-center justify-between text-xs font-bold text-blue-600 dark:text-blue-400">
+                    <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> 5-Minute Non-Stop Speech</span>
+                    <span className="bg-blue-500/20 px-2 py-0.5 rounded-full text-[10px] uppercase font-mono">Timed GD</span>
                   </div>
+                  <p className="text-[11px] text-theme-secondary">
+                    AI presents 1 contemporary GD topic. You speak continuously for 5 minutes covering Intro, For, Against, and Conclusion. AI performs a multi-criteria evaluation at the end.
+                  </p>
                 </div>
-
-                {interviewMode === 'structured' ? (
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary flex items-center gap-1">
-                      <Sliders className="w-3.5 h-3.5" /> Questions
+                      <Clock className="w-3.5 h-3.5" /> Duration
                     </label>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {[3, 5, 8].map((num) => (
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[5, 10, 15, 20].map((mins) => (
                         <button
-                          key={num}
+                          key={mins}
                           type="button"
-                          onClick={() => setQuestionCount(num)}
+                          onClick={() => setDurationMinutes(mins)}
                           className={`py-1.5 text-xs font-semibold rounded-lg border transition-all ${
-                            questionCount === num
+                            durationMinutes === mins
                               ? 'bg-theme-primary text-white border-theme-primary'
                               : 'bg-theme-surface border-theme text-theme-secondary hover:bg-theme-surface-hover'
                           }`}
                         >
-                          {num} Qs
+                          {mins}m
                         </button>
                       ))}
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-1.5 flex flex-col justify-center">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary">
-                      Flow Pacing
-                    </label>
-                    <div className="p-2 rounded-lg bg-theme-surface-alt border border-theme text-[11px] text-theme-secondary">
-                      Adaptive Conversational Pacing (Dynamic AI Follow-ups)
+
+                  {interviewMode === 'structured' ? (
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary flex items-center gap-1">
+                        <Sliders className="w-3.5 h-3.5" /> Questions
+                      </label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {[3, 5, 8].map((num) => (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => setQuestionCount(num)}
+                            className={`py-1.5 text-xs font-semibold rounded-lg border transition-all ${
+                              questionCount === num
+                                ? 'bg-theme-primary text-white border-theme-primary'
+                                : 'bg-theme-surface border-theme text-theme-secondary hover:bg-theme-surface-hover'
+                            }`}
+                          >
+                            {num} Qs
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  ) : (
+                    <div className="space-y-1.5 flex flex-col justify-center">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary">
+                        Flow Pacing
+                      </label>
+                      <div className="p-2 rounded-lg bg-theme-surface-alt border border-theme text-[11px] text-theme-secondary">
+                        Adaptive Conversational Pacing (Dynamic AI Follow-ups)
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <button

@@ -214,7 +214,13 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
     clearSilenceTimer();
     const currentText = latestText || spokenTranscript;
 
-    // In conversational mode:
+    // In GD round, the user is given 5 uninterrupted minutes to talk non-stop.
+    // Do NOT auto-submit on 3.2s pause; let them speak continuously until 5 mins finish or they manually end/submit.
+    if (interview?.interview_style === 'gd') {
+      return;
+    }
+
+    // In conversational mode for other rounds:
     // If candidate has spoken a meaningful response and pauses for 3.2 seconds -> automatically send response and continue
     if (interview?.interview_mode === 'conversational') {
       if (currentText.trim().split(/\s+/).length >= 5) {
@@ -853,14 +859,18 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
                 </div>
                 <div>
                   <h5 className="text-xs font-bold text-theme-primary">
-                    {isSpeaking
+                    {interview.interview_style === 'gd'
+                      ? 'GD Continuous Speaking — 5 Minutes Allotted'
+                      : isSpeaking
                       ? 'AI Interviewer Speaking (Listening Paused)'
                       : isListening
                       ? 'Natural Voice Active — Speak Freely'
                       : 'Connecting Audio...'}
                   </h5>
                   <p className="text-[11px] text-theme-tertiary">
-                    Hands-free dynamic conversation: AI detects when you finish and responds automatically.
+                    {interview.interview_style === 'gd'
+                      ? 'Microphone is continuously recording. Speak non-stop covering Intro, For, Against, and Conclusion.'
+                      : 'Hands-free dynamic conversation: AI detects when you finish and responds automatically.'}
                   </p>
                 </div>
               </div>

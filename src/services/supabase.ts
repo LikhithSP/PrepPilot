@@ -42,7 +42,7 @@ export interface Profile {
   created_at: string;
 }
 
-export type InterviewStyle = 'technical' | 'managerial' | 'hr';
+export type InterviewStyle = 'technical' | 'managerial' | 'hr' | 'gd';
 export type InterviewMode = 'conversational' | 'structured';
 export type DepthLevel = 'low' | 'medium' | 'high';
 
