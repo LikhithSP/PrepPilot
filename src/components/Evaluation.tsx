@@ -188,70 +188,97 @@ export const Evaluation: React.FC<EvaluationProps> = ({
         </div>
       </div>
 
-      {/* MULTI-ATTRIBUTE SCORE METRICS */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Technical / Knowledge Score */}
-        <div className="card p-5 border border-theme space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-theme-tertiary flex items-center gap-1.5">
-              <Cpu className="w-4 h-4 text-blue-500" /> Technical Knowledge
-            </span>
-            <span className="text-base font-black text-theme-primary">
-              {interview.technical_score ?? Math.min(100, overallScore + 2)}/100
-            </span>
-          </div>
-          <div className="w-full h-2 bg-theme-surface-alt rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-500 transition-all duration-500"
-              style={{ width: `${interview.technical_score ?? overallScore}%` }}
-            />
-          </div>
-          <p className="text-[11px] text-theme-secondary">
-            Evaluation of domain algorithms, tool mastery, and system reasoning.
-          </p>
+      {/* ROUND-SPECIFIC CRITERIA BREAKDOWN */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-theme-secondary flex items-center gap-2">
+            <Target className="w-4 h-4 text-theme-primary-color" />
+            <span>{interview.interview_style?.toUpperCase() || 'TECHNICAL'} ROUND EVALUATION CRITERIA</span>
+          </h3>
+          <span className="text-xs text-theme-tertiary">
+            Evaluated specifically against {interview.interview_style || 'technical'} benchmarks
+          </span>
         </div>
 
-        {/* Communication Score */}
-        <div className="card p-5 border border-theme space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-theme-tertiary flex items-center gap-1.5">
-              <MessageSquare className="w-4 h-4 text-purple-500" /> Communication Clarity
-            </span>
-            <span className="text-base font-black text-theme-primary">
-              {interview.communication_score ?? overallScore}/100
-            </span>
+        {interview.round_criteria && interview.round_criteria.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {interview.round_criteria.map((crit, idx) => (
+              <div key={idx} className="card p-4 border border-theme space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-theme-primary line-clamp-1">
+                    {crit.name}
+                  </span>
+                  <span className={`px-2 py-0.5 text-xs font-black rounded-md border ${scoreColor(crit.score)}`}>
+                    {crit.score}/100
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-theme-surface-alt rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-theme-primary transition-all duration-500"
+                    style={{ width: `${crit.score}%` }}
+                  />
+                </div>
+                <p className="text-[11px] text-theme-secondary leading-snug">
+                  {crit.description}
+                </p>
+              </div>
+            ))}
           </div>
-          <div className="w-full h-2 bg-theme-surface-alt rounded-full overflow-hidden">
-            <div
-              className="h-full bg-purple-500 transition-all duration-500"
-              style={{ width: `${interview.communication_score ?? overallScore}%` }}
-            />
-          </div>
-          <p className="text-[11px] text-theme-secondary">
-            Conciseness, articulation structure, confidence, and voice delivery.
-          </p>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="card p-5 border border-theme space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-theme-tertiary flex items-center gap-1.5">
+                  <Cpu className="w-4 h-4 text-blue-500" />
+                  {interview.interview_style === 'managerial' ? 'Leadership & Ownership' : interview.interview_style === 'hr' ? 'Cultural Alignment' : 'Technical & DSA Depth'}
+                </span>
+                <span className="text-base font-black text-theme-primary">
+                  {interview.technical_score ?? overallScore}/100
+                </span>
+              </div>
+              <div className="w-full h-2 bg-theme-surface-alt rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-theme-primary transition-all duration-500"
+                  style={{ width: `${interview.technical_score ?? overallScore}%` }}
+                />
+              </div>
+            </div>
 
-        {/* Problem Solving / Culture Score */}
-        <div className="card p-5 border border-theme space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-theme-tertiary flex items-center gap-1.5">
-              <Target className="w-4 h-4 text-emerald-500" /> Problem Solving Fit
-            </span>
-            <span className="text-base font-black text-theme-primary">
-              {interview.problem_solving_score ?? Math.max(0, overallScore - 2)}/100
-            </span>
+            <div className="card p-5 border border-theme space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-theme-tertiary flex items-center gap-1.5">
+                  <MessageSquare className="w-4 h-4 text-purple-500" /> Spoken Clarity & Articulation
+                </span>
+                <span className="text-base font-black text-theme-primary">
+                  {interview.communication_score ?? overallScore}/100
+                </span>
+              </div>
+              <div className="w-full h-2 bg-theme-surface-alt rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-purple-500 transition-all duration-500"
+                  style={{ width: `${interview.communication_score ?? overallScore}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="card p-5 border border-theme space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-theme-tertiary flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-emerald-500" /> Round Problem Solving Fit
+                </span>
+                <span className="text-base font-black text-theme-primary">
+                  {interview.problem_solving_score ?? overallScore}/100
+                </span>
+              </div>
+              <div className="w-full h-2 bg-theme-surface-alt rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 transition-all duration-500"
+                  style={{ width: `${interview.problem_solving_score ?? overallScore}%` }}
+                />
+              </div>
+            </div>
           </div>
-          <div className="w-full h-2 bg-theme-surface-alt rounded-full overflow-hidden">
-            <div
-              className="h-full bg-emerald-500 transition-all duration-500"
-              style={{ width: `${interview.problem_solving_score ?? overallScore}%` }}
-            />
-          </div>
-          <p className="text-[11px] text-theme-secondary">
-            Scenario handling, architectural trade-offs, and critical judgment.
-          </p>
-        </div>
+        )}
       </div>
 
       {/* EXECUTIVE SUMMARY & GENERAL FEEDBACK */}

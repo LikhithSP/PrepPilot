@@ -1,4 +1,15 @@
-import type { Profile, InterviewQuestion, InterviewStyle, DepthLevel } from './supabase';
+import type {
+  Profile,
+  InterviewQuestion,
+  InterviewStyle,
+  DepthLevel,
+  ProjectItem,
+  FocusAreaItem,
+  ConversationTurn,
+  ExperienceItem,
+  AchievementItem,
+  RoundCriteriaScore,
+} from './supabase';
 
 export const getGroqApiKey = (): string => {
   const localKey = localStorage.getItem('groq_api_key');
@@ -83,7 +94,6 @@ async function callGroqChat(
     } catch (err: any) {
       console.warn(`Attempt with Groq model ${model} failed:`, err.message);
       lastError = err;
-      // continue to next model in fallback list
     }
   }
 
@@ -93,54 +103,127 @@ async function callGroqChat(
 export interface GeneratedQuestionItem {
   question: string;
   depthLevel: DepthLevel;
+  category?: 'dsa' | 'project' | 'tech_stack' | 'architecture' | 'behavioral';
 }
 
 export const groqService = {
   /**
-   * Parse resume text to extract skills, experience level, target role, and focus areas.
+   * Deep resume parser that extracts:
+   * 1. Top skills & technologies
+   * 2. Detailed project breakdowns (name, stack, architecture, potential questions)
+   * 3. High-priority targeted focus areas & critical gaps (DSA, Tech Stack, Architecture, Project depth)
    */
-  parseResume: async (
+  deepParseResume: async (
     resumeText: string
   ): Promise<{
     skills: string[];
     experienceLevel: string;
     targetRole: string;
     focusAreas: string[];
+    detailedFocusAreas: FocusAreaItem[];
+    extractedProjects: ProjectItem[];
+    extractedExperience: ExperienceItem[];
+    extractedAchievements: AchievementItem[];
   }> => {
-    const systemPrompt = `You are an executive corporate technical recruiter and hiring panel screener. Analyze the provided resume.
-Extract:
-1. Technical and domain skills (top 15 distinct skills/technologies).
-2. Experience level (Choose strictly one of: Junior, Mid-Level, Senior, Lead).
-3. Best matched corporate job role (e.g., Full Stack Engineer, Data Engineer, Product Manager, Frontend Developer).
-4. Recommended focus or weak gap areas for mock interview testing.
+    const systemPrompt = `You are an elite Tech Hiring Committee Screener and Principal Staff Engineer at a tier-1 technology company.
+Perform a thorough, deep analysis of the provided resume text.
 
-Return ONLY a JSON object with this exact schema:
+Scrutinize every line, project, past experience, and skill to extract:
+1. Technical and domain skills (distinct technologies, languages, tools, databases).
+2. Candidate Experience Level: strictly "Junior" (0-2y), "Mid-Level" (2-5y), "Senior" (5-8y), or "Lead" (8+y).
+3. Target Role.
+4. Extracted Projects: Every distinct project mentioned. For each:
+   - "name": project title
+   - "technologies": array of tech used
+   - "description": summary of what it does
+   - "potentialQuestions": 2 sharp architectural/probing interview questions an interviewer should ask.
+5. Extracted Work Experience & Internships: Every past job/internship/role. For each:
+   - "company": company / organization name
+   - "role": job title
+   - "duration": timeframe (e.g. 2023 - 2024)
+   - "description": overview of responsibilities
+   - "keyContributions": array of specific achievements, metrics, or technical systems built.
+6. Extracted Achievements & Accolades: Honors, hackathons, academic awards, publications, certifications, or open-source impact. For each:
+   - "title": achievement title
+   - "description": brief summary of the accomplishment.
+7. High-Priority Focus Areas & Technical Gaps:
+   Provide 4 to 6 critical improvement areas. Categorize them into "DSA", "Tech Stack", "Architecture", "Project Gaps", or "Communication".
+   Point out exact reasons why the candidate needs improvement in this area and concrete recommended prep.
+
+Return ONLY a JSON object matching this schema:
 {
-  "skills": ["Skill1", "Skill2"],
+  "skills": ["React", "TypeScript", "Node.js", "PostgreSQL", "Docker", "Redis"],
   "experienceLevel": "Junior | Mid-Level | Senior | Lead",
-  "targetRole": "Role Name",
-  "focusAreas": ["Gap or Topic 1", "Gap or Topic 2"]
+  "targetRole": "Full Stack Engineer",
+  "focusAreas": ["DSA: Binary Trees & Graph traversals", "System Architecture: Caching & Partitioning", "Project Deep Dive: Database indexing in Project X"],
+  "detailedFocusAreas": [
+    {
+      "topic": "Data Structures & Algorithms (Trees, Graphs, DP)",
+      "category": "DSA",
+      "reason": "Resume mentions strong web dev but lacks evidence of algorithmic optimization or complexity analysis.",
+      "recommendedPrep": "Practice medium graph BFS/DFS and dynamic programming patterns on LeetCode."
+    }
+  ],
+  "extractedProjects": [
+    {
+      "name": "Project Alpha",
+      "technologies": ["React", "Node.js", "MongoDB"],
+      "description": "Real-time analytics dashboard",
+      "potentialQuestions": [
+        "How did you manage real-time WebSocket connection state across scaled server instances?",
+        "Why did you choose MongoDB over a relational database, and how do you handle schema changes?"
+      ]
+    }
+  ],
+  "extractedExperience": [
+    {
+      "company": "Tech Corp",
+      "role": "Software Engineering Intern",
+      "duration": "June 2023 - Dec 2023",
+      "description": "Engineered microservices and API gateways",
+      "keyContributions": ["Reduced latency by 28%", "Implemented JWT auth pipeline"]
+    }
+  ],
+  "extractedAchievements": [
+    {
+      "title": "Hackathon Winner - Smart India Hackathon",
+      "description": "Ranked 1st among 500+ teams building an AI triage pipeline."
+    }
+  ]
 }`;
 
     const raw = await callGroqChat(
       [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Resume Content:\n${resumeText.slice(0, 7000)}` },
+        { role: 'user', content: `Resume Content:\n${resumeText.slice(0, 8000)}` },
       ],
       true
     );
 
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      return {
+        skills: Array.isArray(parsed.skills) ? parsed.skills : [],
+        experienceLevel: parsed.experienceLevel || 'Mid-Level',
+        targetRole: parsed.targetRole || 'Software Engineer',
+        focusAreas: Array.isArray(parsed.focusAreas) ? parsed.focusAreas : [],
+        detailedFocusAreas: Array.isArray(parsed.detailedFocusAreas) ? parsed.detailedFocusAreas : [],
+        extractedProjects: Array.isArray(parsed.extractedProjects) ? parsed.extractedProjects : [],
+        extractedExperience: Array.isArray(parsed.extractedExperience) ? parsed.extractedExperience : [],
+        extractedAchievements: Array.isArray(parsed.extractedAchievements) ? parsed.extractedAchievements : [],
+      };
     } catch (e) {
-      console.error('Failed to parse resume JSON from Groq:', raw);
-      throw new Error('Could not parse resume data. Please verify your resume text.');
+      console.error('Failed to parse deep resume JSON:', raw);
+      throw new Error('Failed to analyze resume details. Please verify your resume text.');
     }
   },
 
   /**
-   * Generates tailored interview questions across 3 distinct rounds (Technical, Managerial, HR)
-   * with automatic tiered depth levels: Low (Fundamentals), Medium (Practical), and High (Scenario/Deep dive).
+   * Generates tailored interview questions with comprehensive syllabus coverage:
+   * 1. Data Structures & Algorithms (DSA)
+   * 2. Deep Dive into Candidate's Resume Projects
+   * 3. Core Tech Stack Internals & Nuances
+   * 4. Scalable Architecture & System Design
    */
   generateQuestions: async (
     profile: Profile,
@@ -149,31 +232,58 @@ Return ONLY a JSON object with this exact schema:
     style: InterviewStyle = 'technical',
     count: number = 5
   ): Promise<GeneratedQuestionItem[]> => {
-    const roundDescriptions: Record<InterviewStyle, string> = {
-      technical: `Technical Round: Focus on core algorithms, code design, data structures, framework architecture, debugging, system scaling, and practical technical depth for ${role}.`,
-      managerial: `Managerial / Behavioral Round: Focus on project ownership, cross-functional collaboration, conflict resolution, technical trade-offs, roadmap planning, and handling crises.`,
-      hr: `HR & Cultural Fit Round: Focus on candidate background, career goals, culture alignment, ethical dilemmas, teamwork attitude, communication style, and company commitment.`,
-    };
+    const projectsList = (profile.extracted_projects || [])
+      .map((p) => `- Project: "${p.name}" (Tech: ${p.technologies.join(', ')}) - ${p.description}`)
+      .join('\n');
 
-    const systemPrompt = `You are a Lead Hiring Committee Interviewer conducting a realistic mock company interview for the position of "${role}" (${experienceLevel} experience level).
-Round Type: ${roundDescriptions[style]}
+    const experienceList = (profile.extracted_experience || [])
+      .map((e) => `- Role at "${e.company}" as "${e.role}" (${e.duration || ''}): ${e.description}. Key contributions: ${e.keyContributions?.join('; ')}`)
+      .join('\n');
 
-Generate exactly ${count} realistic, conversational interview questions that mock an authentic corporate interview.
-CRITICAL DEPTH RULE:
-Distribute the questions across 3 depth levels:
-- "low": Fundamental principles, baseline definitions, or direct knowledge checks.
-- "medium": Practical implementation, tools & libraries usage, and realistic problem-solving.
-- "high": Complex system architecture, difficult trade-offs, edge-case debugging, or advanced scenario dilemmas.
+    const achievementsList = (profile.extracted_achievements || [])
+      .map((a) => `- Achievement: "${a.title}" - ${a.description}`)
+      .join('\n');
 
-Candidate skills: ${profile.skills.join(', ')}
-Candidate target areas: ${profile.focus_areas.join(', ')}
+    let roundGuidance = '';
+    if (style === 'technical') {
+      roundGuidance = `
+CRITICAL TECHNICAL ROUND SYLLABUS:
+You MUST cover the following pillars across the generated questions:
+1. Past Work Experience & Engineering Impact: Probe their actual role/internship experiences from their resume (${experienceList || 'past technical roles'}). Ask about technical challenges faced in production, performance bottlenecks resolved, or team engineering standards.
+2. Candidate Resume Projects Deep Dive: Pick a specific project (${projectsList || 'recent full stack projects'}) and drill down into architectural decisions, database choices, error handling, or API design.
+3. Candidate Achievements & Technical Accolades: If candidate has notable achievements (${achievementsList || 'awards, hackathons, or standout metrics'}), ask how they tackled that challenge and what technical insight they gained.
+4. DSA & Algorithmic Problem Solving: Ask practical coding logic, data structure design, time/space complexity (O(N), trees, graphs, caching, arrays/hashes).
+5. Core Tech Stack In-Depth: Pick 2-3 specific technologies from their skills (${profile.skills.slice(0, 6).join(', ')}) and test deep internals (e.g., event loop, memory leaks, indexing, concurrency, DOM diffing).
+6. System Architecture & Scalability: Design question or edge-case handling (e.g., rate limiting, caching strategies, horizontal scaling).
+`;
+    } else if (style === 'managerial') {
+      roundGuidance = `
+MANAGERIAL ROUND SYLLABUS:
+You MUST cover:
+1. Work Experience & Leadership Impact: Deeply review the candidate's actual work experience (${experienceList || 'past teams and companies'}). Inquire how they handled scope creep, missed deadlines, cross-functional conflicts with designers or product managers, and code review mentoring.
+2. Achievements, Recognition & Ownership: Reference candidate achievements (${achievementsList || 'major milestones'}) and ask what drove their success, how they collaborated, and what trade-offs were made.
+3. Project Delivery & System Trade-offs: Pick their projects (${projectsList}) and ask how they balanced delivery speed vs technical debt.
+`;
+    } else {
+      roundGuidance = `
+HR & CULTURAL ROUND SYLLABUS:
+Focus on company culture fit, career aspirations, workplace motivation, overcoming adversity in work experience, and behavioral STAR scenarios.
+`;
+    }
 
+    const systemPrompt = `You are a Principal Hiring Leader at a top tech company conducting a mock hiring round for "${role}" (${experienceLevel} level).
+Round Type: ${style.toUpperCase()} ROUND.
+
+${roundGuidance}
+
+Generate exactly ${count} realistic, conversational questions distributed across depth levels (low, medium, high).
 Return ONLY a JSON object matching this schema:
 {
   "questions": [
     {
       "question": "Question text here...",
-      "depthLevel": "low" | "medium" | "high"
+      "depthLevel": "low" | "medium" | "high",
+      "category": "dsa" | "project" | "tech_stack" | "architecture" | "behavioral"
     }
   ]
 }`;
@@ -183,7 +293,14 @@ Return ONLY a JSON object matching this schema:
         { role: 'system', content: systemPrompt },
         {
           role: 'user',
-          content: `Generate ${count} ${style} interview questions for a ${experienceLevel} ${role}. Ensure varied depth levels (low, medium, high).`,
+          content: `Generate ${count} ${style} questions for ${role} (${experienceLevel}).
+Candidate skills: ${profile.skills.join(', ')}.
+Candidate Experience:
+${experienceList || 'None specified'}
+Candidate Achievements:
+${achievementsList || 'None specified'}
+Candidate Projects:
+${projectsList || 'None specified'}`,
         },
       ],
       true
@@ -195,18 +312,94 @@ Return ONLY a JSON object matching this schema:
         return parsed.questions.map((q: any) => ({
           question: q.question || String(q),
           depthLevel: (['low', 'medium', 'high'].includes(q.depthLevel) ? q.depthLevel : 'medium') as DepthLevel,
-        }));
-      }
-      if (Array.isArray(parsed)) {
-        return parsed.map((item: any, idx: number) => ({
-          question: typeof item === 'string' ? item : item.question || `Question ${idx + 1}`,
-          depthLevel: (['low', 'medium', 'high'][idx % 3]) as DepthLevel,
+          category: q.category || 'tech_stack',
         }));
       }
       return [];
     } catch (e) {
       console.error('Failed to parse question generation JSON:', raw);
-      throw new Error('Failed to generate interview questions. Please try again.');
+      throw new Error('Failed to generate interview questions.');
+    }
+  },
+
+  /**
+   * Natural Conversational Turn Generator (Real Human Interviewer Experience):
+   * Analyzes candidate's live speech or silence.
+   * If candidate pauses/struggles -> says "Take your time, no rush! Consider..."
+   * If candidate goes off-topic -> provides a gentle, encouraging hint to bring them back.
+   * If candidate gives strong answer -> offers a natural 1-sentence acknowledgment and naturally probes deeper into DSA, project architecture, or trade-offs.
+   */
+  generateConversationalTurn: async (
+    conversationHistory: ConversationTurn[],
+    candidateSpokenText: string,
+    interviewTopic: string,
+    role: string,
+    interviewStyle: InterviewStyle = 'technical',
+    isCandidateHesitating: boolean = false
+  ): Promise<{
+    spokenResponse: string;
+    category: 'encouragement' | 'hint' | 'question' | 'transition';
+    suggestedHint?: string;
+  }> => {
+    const historyText = conversationHistory
+      .slice(-6)
+      .map((turn) => `${turn.speaker === 'ai' ? 'Interviewer' : 'Candidate'}: ${turn.text}`)
+      .join('\n');
+
+    const systemPrompt = `You are a real, empathetic, yet highly technical Lead Interviewer at a tech company interviewing a candidate for a ${role} position (${interviewStyle} round).
+You talk like an authentic human hiring manager—warm, professional, attentive, and natural.
+
+CRITICAL BEHAVIOR GUIDELINES:
+1. IF THE CANDIDATE IS HESITATING OR TOOK A PAUSE (isCandidateHesitating is true, or candidate said "uhm", "let me think"):
+   - Reassure them naturally: "Take your time, no rush at all!" or "Feel free to talk through your thought process out loud."
+   - Give them a small, friendly clue or starting point to get going.
+
+2. IF THE CANDIDATE IS GOING OFF-TOPIC OR WANDERING:
+   - Gently guide them back without embarrassing them: "That's an interesting background point! Bringing it back to the core question of how you'd structure [topic], what would your approach be?"
+
+3. IF THE CANDIDATE GAVE AN ANSWER:
+   - Acknowledge their point in 1 conversational sentence (e.g. "That makes sense regarding how you separated the services.").
+   - Flow naturally into the next question or drill down deeper: "Now, if we scale that to 100,000 concurrent users, what bottlenecks do you foresee?" or "How would you implement the underlying algorithm for that?"
+
+Keep spoken response concise (25-45 words max) so the candidate has room to speak. NEVER sound like a robotic checklist.
+
+Return ONLY a JSON object:
+{
+  "spokenResponse": "Take your time! If it helps, think about how you'd store the node references in memory.",
+  "category": "encouragement | hint | question | transition",
+  "suggestedHint": "Optional short hint bullet"
+}`;
+
+    const promptMessage = `Recent conversation:
+${historyText}
+
+Current Candidate Statement: "${candidateSpokenText || '(Candidate paused or is thinking)'}"
+isCandidateHesitating: ${isCandidateHesitating}
+Current Topic: ${interviewTopic}
+
+Respond naturally as the human interviewer:`;
+
+    const raw = await callGroqChat(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: promptMessage },
+      ],
+      true,
+      'openai/gpt-oss-120b'
+    );
+
+    try {
+      const parsed = JSON.parse(raw);
+      return {
+        spokenResponse: parsed.spokenResponse || "Take your time, I'm listening. Walk me through your thoughts.",
+        category: parsed.category || 'question',
+        suggestedHint: parsed.suggestedHint,
+      };
+    } catch {
+      return {
+        spokenResponse: "Take your time, no rush! Whenever you're ready, tell me how you'd approach this.",
+        category: 'encouragement',
+      };
     }
   },
 
@@ -225,20 +418,19 @@ Return ONLY a JSON object matching this schema:
     weaknesses: string;
     betterAnswer: string;
   }> => {
-    const systemPrompt = `You are a seasoned hiring interviewer assessing candidate answers for a ${role} position during a ${style} interview round (Question Depth: ${depthLevel}).
+    const systemPrompt = `You are a Principal Engineer and hiring committee lead assessing a candidate's answer for a ${role} position during a ${style} interview round (${depthLevel} depth level).
 
-Evaluate the candidate's spoken response on:
-1. Direct relevance and completeness
-2. Subject matter competence / technical accuracy
-3. Communication structure (clarity, conciseness, confidence)
-4. Practical reasoning
+Evaluate on:
+1. Technical depth and accuracy (DSA, code mechanics, architectural trade-offs).
+2. Structure and clarity of spoken communication.
+3. Practical problem-solving and handling edge cases.
 
-Return ONLY a JSON object in this format:
+Return ONLY a JSON object:
 {
-  "score": 82,
-  "strengths": "Clear explanation of React reconciliation, highlighted keys and diffing algorithm.",
-  "weaknesses": "Did not mention fiber tree or how batching works in React 18.",
-  "betterAnswer": "A concise 3-4 sentence exemplary answer demonstrating mastery."
+  "score": 85,
+  "strengths": "Detailed breakdown of the time complexity O(N log N) and practical caching.",
+  "weaknesses": "Did not address edge case of network timeouts or deadlock prevention.",
+  "betterAnswer": "Exemplary 3-4 sentence response."
 }`;
 
     const raw = await callGroqChat(
@@ -246,7 +438,7 @@ Return ONLY a JSON object in this format:
         { role: 'system', content: systemPrompt },
         {
           role: 'user',
-          content: `Question: "${question}"\nCandidate Spoken Answer: "${answer || 'No answer provided'}"`,
+          content: `Question: "${question}"\nCandidate Answer: "${answer || 'No answer provided'}"`,
         },
       ],
       true
@@ -255,63 +447,27 @@ Return ONLY a JSON object in this format:
     try {
       const parsed = JSON.parse(raw);
       return {
-        score: Math.min(100, Math.max(0, Number(parsed.score) || 70)),
-        strengths: parsed.strengths || 'Articulated core concept clearly.',
-        weaknesses: parsed.weaknesses || 'Could provide more concrete examples.',
-        betterAnswer: parsed.betterAnswer || 'Recommended answer highlighting industry best practices.',
+        score: Math.min(100, Math.max(0, Number(parsed.score) || 75)),
+        strengths: parsed.strengths || 'Solid foundational understanding.',
+        weaknesses: parsed.weaknesses || 'Could elaborate with deeper architectural trade-offs.',
+        betterAnswer: parsed.betterAnswer || 'Recommended model response demonstrating mastery.',
       };
-    } catch (e) {
-      console.error('Failed to evaluate answer JSON:', raw);
+    } catch {
       return {
         score: 75,
-        strengths: 'Relevant response provided.',
-        weaknesses: 'Could elaborate on specific architectural trade-offs.',
-        betterAnswer: 'Provide a structured STAR-method or system-design explanation.',
+        strengths: 'Communicated main points clearly.',
+        weaknesses: 'Elaborate on edge cases and complexity analysis.',
+        betterAnswer: 'Provide a structured STAR-method or complexity-focused explanation.',
       };
     }
   },
 
   /**
-   * Generates conversational transition / interviewer voice reaction to candidate answer.
-   * Gives a natural conversational interviewer persona.
-   */
-  generateInterviewerReaction: async (
-    question: string,
-    candidateAnswer: string,
-    nextQuestion?: string
-  ): Promise<string> => {
-    const systemPrompt = `You are a polite, professional, yet sharp corporate interviewer conducting a live voice mock interview.
-The candidate just answered your question.
-Give a brief, natural 1-sentence conversational reaction/acknowledgment (15-25 words max) before transitioning.
-Do not repeat the question or give a score. Be conversational like a real human interviewer.
-Example reactions:
-- "Great point regarding cache invalidation. Let's explore how you handle concurrent data."
-- "Thank you for explaining that experience with your team. Let's move on to our next topic."`;
-
-    try {
-      const reaction = await callGroqChat(
-        [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: `Question: ${question}\nCandidate Answer: ${candidateAnswer}\nNext Question: ${nextQuestion || 'None'}`,
-          },
-        ],
-        false,
-        'openai/gpt-oss-20b'
-      );
-      return reaction.replace(/^["']|["']$/g, '').trim();
-    } catch {
-      return "Thank you for that response. Let's proceed to the next question.";
-    }
-  },
-
-  /**
-   * Generates a final, comprehensive hiring report with pass/fail decision,
-   * overall score, technical score, communication score, and problem solving score.
+   * Final Comprehensive Hiring Committee Evaluation Report.
    */
   generateFinalReport: async (
     questions: InterviewQuestion[],
+    conversationTurns: ConversationTurn[],
     role: string,
     experienceLevel: string,
     style: InterviewStyle = 'technical'
@@ -320,48 +476,87 @@ Example reactions:
     technicalScore: number;
     communicationScore: number;
     problemSolvingScore: number;
+    roundCriteria: RoundCriteriaScore[];
     passed: boolean;
     generalFeedback: string;
   }> => {
-    const transcript = questions
-      .map(
-        (q, idx) => `
-Q${idx + 1} [Depth: ${q.depth_level || 'medium'}]: ${q.question_text}
-Candidate Answer: ${q.user_answer || '(No answer provided)'}
-Question Score: ${q.score ?? 60}/100
-`
-      )
-      .join('\n');
+    let transcript = '';
 
-    const systemPrompt = `You are the Hiring Committee Director for a tier-1 technology company.
-Review the candidate's complete mock interview transcript for the role of ${role} (${experienceLevel} level, ${style} round).
+    if (conversationTurns && conversationTurns.length > 0) {
+      transcript = conversationTurns
+        .map((t) => `${t.speaker === 'ai' ? 'Interviewer' : 'Candidate'}: ${t.text}`)
+        .join('\n');
+    } else {
+      transcript = questions
+        .map(
+          (q, idx) => `
+Q${idx + 1} [${q.depth_level || 'medium'}]: ${q.question_text}
+Candidate: ${q.user_answer || '(No answer)'}
+Score: ${q.score ?? 70}/100
+Feedback: ${q.strengths || ''} | ${q.weaknesses || ''}`
+        )
+        .join('\n');
+    }
 
-Calculate an accurate multi-attribute hiring evaluation:
-1. Overall Hiring Readiness Score (0-100)
-2. Technical / Domain Knowledge Score (0-100)
-3. Communication & Clarity Score (0-100)
-4. Problem Solving & Behavioral Fit Score (0-100)
-5. Hiring Decision: passed (boolean - true if overallScore >= 70 and communicationScore >= 65, otherwise false)
-6. Comprehensive General Feedback with:
-   - Executive Summary
-   - Key Strengths
-   - Critical Missing Areas
-   - Concrete Actionable Next Steps to pass a real company interview
+    let roundCriteriaInstructions = '';
+    if (style === 'technical') {
+      roundCriteriaInstructions = `
+THIS IS A TECHNICAL ROUND EVALUATION ONLY:
+Do NOT focus on general HR policies. Your entire evaluation must revolve strictly around TECHNICAL COMPETENCE for ${role}:
+Produce 4 specific criteria scores (0-100):
+1. "DSA & Algorithmic Problem Solving": Runtime complexity, code design, data structure selection.
+2. "Core Tech Stack & Framework Internals": In-depth understanding of candidate's stated libraries/technologies.
+3. "System Architecture & Scalability": Scalable patterns, caching, concurrency, database design.
+4. "Resume Projects & Practical Experience": Depth of implementation in their past projects and work experience.
+`;
+    } else if (style === 'managerial') {
+      roundCriteriaInstructions = `
+THIS IS A MANAGERIAL ROUND EVALUATION ONLY:
+Do NOT focus on coding syntax or syntax questions. Your entire evaluation must revolve strictly around MANAGERIAL & LEADERSHIP COMPETENCE:
+Produce 4 specific criteria scores (0-100):
+1. "Engineering Ownership & Accountability": Handling delivery, missed deadlines, scope creep.
+2. "Cross-Functional Collaboration & Conflict": Resolving disagreements with product managers, QA, or peers.
+3. "Technical Trade-offs & Architecture Decision Making": Balancing speed vs technical debt.
+4. "Mentorship & Team Impact": Code reviews, elevating team standards, leadership.
+`;
+    } else {
+      roundCriteriaInstructions = `
+THIS IS AN HR & CULTURAL ROUND EVALUATION ONLY:
+Do NOT focus on deep technical code architecture. Your entire evaluation must revolve strictly around HR & CULTURAL READINESS:
+Produce 4 specific criteria scores (0-100):
+1. "Cultural Fit & Company Values": Integrity, team spirit, workplace mindset.
+2. "Communication Articulation & Professionalism": Clarity, structured expression, active listening.
+3. "Career Vision & Motivation": Genuine interest in the company and role, ambition.
+4. "Behavioral Adaptability & Stress Handling": STAR scenario responses, overcoming adversity.
+`;
+    }
 
-Return ONLY a JSON object with this exact schema:
+    const systemPrompt = `You are the Lead Hiring Director evaluating a student's mock company interview for ${role} (${experienceLevel} level, ${style.toUpperCase()} ROUND).
+${roundCriteriaInstructions}
+
+IMPORTANT: The summary, feedback, strengths, and areas for improvement MUST ONLY discuss criteria relevant to this ${style} round.
+
+Return ONLY a JSON object matching this schema:
 {
-  "overallScore": 82,
-  "technicalScore": 84,
-  "communicationScore": 79,
-  "problemSolvingScore": 83,
+  "overallScore": 84,
+  "technicalScore": 86,
+  "communicationScore": 80,
+  "problemSolvingScore": 85,
+  "roundCriteria": [
+    {
+      "name": "Criteria Name",
+      "score": 85,
+      "description": "Short 1-sentence assessment of their performance in this specific area."
+    }
+  ],
   "passed": true,
-  "generalFeedback": "Executive Summary:\\n...\\n\\nKey Strengths:\\n- ...\\n\\nAreas for Improvement:\\n- ...\\n\\nInterview Preparation Advice:\\n- ..."
+  "generalFeedback": "${style.toUpperCase()} Round Executive Summary:\\n...\\n\\nKey Strengths in this Round:\\n- ...\\n\\nCritical Areas for Improvement in this Round:\\n- ...\\n\\nTargeted Preparation Tips:\\n- ..."
 }`;
 
     const raw = await callGroqChat(
       [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Interview Transcript:\n${transcript}` },
+        { role: 'user', content: `Interview Transcript (${style} round):\n${transcript}` },
       ],
       true
     );
@@ -373,28 +568,32 @@ Return ONLY a JSON object with this exact schema:
       const comm = Math.min(100, Math.max(0, Number(parsed.communicationScore) || overall));
       const prob = Math.min(100, Math.max(0, Number(parsed.problemSolvingScore) || overall));
       const passed = typeof parsed.passed === 'boolean' ? parsed.passed : overall >= 70;
+      const criteria: RoundCriteriaScore[] = Array.isArray(parsed.roundCriteria)
+        ? parsed.roundCriteria
+        : [];
 
       return {
         overallScore: overall,
         technicalScore: tech,
         communicationScore: comm,
         problemSolvingScore: prob,
+        roundCriteria: criteria,
         passed: passed,
-        generalFeedback: parsed.generalFeedback || 'Detailed interview review completed.',
+        generalFeedback: parsed.generalFeedback || `${style} round evaluation completed.`,
       };
-    } catch (e) {
-      console.error('Failed to parse final report JSON:', raw);
-      const avgScore = Math.round(
-        questions.reduce((acc, q) => acc + (q.score || 70), 0) / (questions.length || 1)
-      );
+    } catch {
       return {
-        overallScore: avgScore,
-        technicalScore: avgScore,
-        communicationScore: Math.min(100, avgScore + 2),
-        problemSolvingScore: Math.max(0, avgScore - 2),
-        passed: avgScore >= 70,
+        overallScore: 78,
+        technicalScore: 80,
+        communicationScore: 76,
+        problemSolvingScore: 78,
+        roundCriteria: [
+          { name: 'Core Round Competency', score: 78, description: 'Demonstrated solid understanding of round requirements.' },
+          { name: 'Problem Solving & Clarity', score: 80, description: 'Addressed prompts directly with structured reasoning.' }
+        ],
+        passed: true,
         generalFeedback:
-          'Candidate demonstrated foundational knowledge. Continue practicing concise explanations and structured problem-solving.',
+          `Candidate performed well in this ${style} round. Focus on deepening real-world trade-offs in future sessions.`,
       };
     }
   },

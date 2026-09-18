@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { getGroqApiKey, setGroqApiKey } from '../services/groq';
-import { getGeminiApiKey, setGeminiApiKey } from '../services/gemini';
 import { isSupabaseConfigured } from '../services/supabase';
 import { X, Shield, Check, AlertCircle, Sun, Moon, Cpu } from 'lucide-react';
 
@@ -11,7 +10,6 @@ interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [groqKey, setGroqKey] = useState(getGroqApiKey());
-  const [geminiKey, setGeminiKey] = useState(getGeminiApiKey());
   const [saved, setSaved] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('theme') as 'light' | 'dark') || 'light';
@@ -22,7 +20,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setGroqApiKey(groqKey);
-    setGeminiApiKey(geminiKey);
     setSaved(true);
     setTimeout(() => {
       setSaved(false);
@@ -97,10 +94,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-semibold uppercase tracking-wider text-theme-secondary">
-                Groq API Key (Recommended / Primary)
+                Groq API Key
               </label>
               <span className="text-[11px] font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Cpu className="w-3 h-3" /> Ultra Fast
+                <Cpu className="w-3 h-3" /> Ultra Fast LPU
               </span>
             </div>
             <input
@@ -111,22 +108,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               className="input-field"
             />
             <p className="text-[11px] text-theme-tertiary">
-              Powers voice mock questions, live conversational turns, and deep smart evaluations.
+              Powers all AI voice mock simulations, resume deep scans, and hiring analytics.
             </p>
-          </div>
-
-          {/* Gemini API Key (Fallback) */}
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-theme-secondary">
-              Gemini API Key (Optional Fallback)
-            </label>
-            <input
-              type="password"
-              value={geminiKey}
-              onChange={(e) => setGeminiKey(e.target.value)}
-              placeholder="AIzaSy..."
-              className="input-field"
-            />
           </div>
 
           {/* Supabase Status */}

@@ -1,6 +1,32 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Types
+export interface ProjectItem {
+  name: string;
+  technologies: string[];
+  description: string;
+  potentialQuestions: string[];
+}
+
+export interface FocusAreaItem {
+  topic: string;
+  category: 'DSA' | 'Tech Stack' | 'Architecture' | 'Project Gaps' | 'Communication';
+  reason: string;
+  recommendedPrep: string;
+}
+
+export interface ExperienceItem {
+  company: string;
+  role: string;
+  duration?: string;
+  description: string;
+  keyContributions: string[];
+}
+
+export interface AchievementItem {
+  title: string;
+  description: string;
+}
+
 export interface Profile {
   id: string;
   name: string;
@@ -9,11 +35,30 @@ export interface Profile {
   target_role: string;
   experience_level: string;
   focus_areas: string[];
+  detailed_focus_areas?: FocusAreaItem[];
+  extracted_projects?: ProjectItem[];
+  extracted_experience?: ExperienceItem[];
+  extracted_achievements?: AchievementItem[];
   created_at: string;
 }
 
 export type InterviewStyle = 'technical' | 'managerial' | 'hr';
+export type InterviewMode = 'conversational' | 'structured';
 export type DepthLevel = 'low' | 'medium' | 'high';
+
+export interface ConversationTurn {
+  id: string;
+  speaker: 'ai' | 'candidate';
+  text: string;
+  category?: 'greeting' | 'question' | 'hint' | 'encouragement' | 'transition' | 'answer';
+  timestamp: string;
+}
+
+export interface RoundCriteriaScore {
+  name: string;
+  score: number;
+  description: string;
+}
 
 export interface Interview {
   id: string;
@@ -21,14 +66,17 @@ export interface Interview {
   role: string;
   experience_level: string;
   interview_style?: InterviewStyle;
+  interview_mode?: InterviewMode;
   duration_minutes?: number;
   status: 'in_progress' | 'completed';
   overall_score: number | null;
   technical_score?: number | null;
   communication_score?: number | null;
   problem_solving_score?: number | null;
+  round_criteria?: RoundCriteriaScore[];
   passed?: boolean | null;
   general_feedback: string | null;
+  conversation_turns?: ConversationTurn[];
   created_at: string;
 }
 

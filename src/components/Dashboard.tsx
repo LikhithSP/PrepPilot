@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import type { Profile, Interview, InterviewStyle, DepthLevel } from '../services/supabase';
+import type {
+  Profile,
+  Interview,
+  InterviewStyle,
+  InterviewMode,
+} from '../services/supabase';
 import { db } from '../services/supabase';
 import { groqService, getGroqApiKey } from '../services/groq';
-import { geminiService, getGeminiApiKey } from '../services/gemini';
 import { parsePdf } from '../utils/pdfParser';
 import {
   Upload,
@@ -20,7 +24,15 @@ import {
   Sliders,
   Check,
   Award,
-  BarChart2
+  BarChart2,
+  MessageSquare,
+  ListOrdered,
+  FolderGit2,
+  Target,
+  AlertTriangle,
+  Lightbulb,
+  Building2,
+  Trophy,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -42,10 +54,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showPasteArea, setShowPasteArea] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  // Interview Setup Form States
+  // Setup Form States
   const [targetRole, setTargetRole] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('Mid-Level');
   const [interviewStyle, setInterviewStyle] = useState<InterviewStyle>('technical');
+  const [interviewMode, setInterviewMode] = useState<InterviewMode>('conversational');
   const [durationMinutes, setDurationMinutes] = useState(15);
   const [questionCount, setQuestionCount] = useState(5);
   const [isCreatingInterview, setIsCreatingInterview] = useState(false);
@@ -69,25 +82,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   };
 
-  const hasAnyKey = () => Boolean(getGroqApiKey() || getGeminiApiKey());
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const unsupportedTypes = [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-      'image/bmp', 'image/tiff'
-    ];
-    if (unsupportedTypes.includes(file.type)) {
-      setUploadError(
-        'Image files are not supported. Please upload a PDF or text-based resume file (PDF, TXT, MD).'
-      );
-      return;
-    }
-
-    if (!hasAnyKey()) {
-      setUploadError('Please configure your Groq or Gemini API Key in settings first.');
+    if (!getGroqApiKey()) {
+      setUploadError('Please configure your Groq API Key in settings first.');
       onOpenSettings();
       return;
     }
@@ -115,8 +115,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     e.preventDefault();
     if (!pasteText.trim()) return;
 
-    if (!hasAnyKey()) {
-      setUploadError('Please configure your Groq or Gemini API Key in settings first.');
+    if (!getGroqApiKey()) {
+      setUploadError('Please configure your Groq API Key in settings first.');
       onOpenSettings();
       return;
     }
@@ -138,13 +138,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const handleParseResumeText = async (text: string) => {
     setIsParsing(true);
     try {
-      let parsed: { skills: string[]; experienceLevel: string; targetRole: string; focusAreas: string[] };
-
-      if (getGroqApiKey()) {
-        parsed = await groqService.parseResume(text);
-      } else {
-        parsed = await geminiService.parseResume(text);
-      }
+      const parsed = await groqService.deepParseResume(text);
 
       const savedProfile = await db.saveProfile({
         name: 'Student Candidate',
@@ -153,10 +147,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
         target_role: parsed.targetRole || 'Software Engineer',
         experience_level: parsed.experienceLevel || 'Mid-Level',
         focus_areas: parsed.focusAreas || [],
+        detailed_focus_areas: parsed.detailedFocusAreas || [],
+        extracted_projects: parsed.extractedProjects || [],
+        extracted_experience: parsed.extractedExperience || [],
+        extracted_achievements: parsed.extractedAchievements || [],
       });
+
       setProfile(savedProfile);
       setTargetRole(savedProfile.target_role);
       setExperienceLevel(savedProfile.experience_level);
+    } catch (err: any) {
+      console.error('Resume parsing failed:', err);
+      setUploadError(err.message || 'Failed to analyze resume.');
     } finally {
       setIsParsing(false);
     }
@@ -165,7 +167,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const handleStartInterview = async () => {
     if (!profile) return;
 
-    if (!hasAnyKey()) {
+    if (!getGroqApiKey()) {
       setUploadError('Please configure your Groq API Key in settings to proceed.');
       onOpenSettings();
       return;
@@ -179,34 +181,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
         role: targetRole || profile.target_role || 'Software Engineer',
         experience_level: experienceLevel,
         interview_style: interviewStyle,
+        interview_mode: interviewMode,
         duration_minutes: durationMinutes,
       });
 
-      // 2. Generate questions across tiered depths (low, medium, high)
-      let generatedQuestions: { question: string; depthLevel: DepthLevel }[] = [];
+      // 2. Generate syllabus questions (DSA, Projects, Tech Stack, Architecture)
+      const generatedQuestions = await groqService.generateQuestions(
+        profile,
+        targetRole,
+        experienceLevel,
+        interviewStyle,
+        interviewMode === 'structured' ? questionCount : 5
+      );
 
-      if (getGroqApiKey()) {
-        generatedQuestions = await groqService.generateQuestions(
-          profile,
-          targetRole,
-          experienceLevel,
-          interviewStyle,
-          questionCount
-        );
-      } else {
-        const geminiQuestions = await geminiService.generateQuestions(
-          profile,
-          targetRole,
-          experienceLevel,
-          questionCount
-        );
-        generatedQuestions = geminiQuestions.map((q, idx) => ({
-          question: q,
-          depthLevel: (['low', 'medium', 'high'][idx % 3]) as DepthLevel,
-        }));
-      }
-
-      // 3. Save interview questions
+      // 3. Save interview questions to DB
       const questionsToSave = generatedQuestions.map((q) => ({
         interview_id: interview.id,
         question_text: q.question,
@@ -224,7 +212,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       onStartInterview(interview.id);
     } catch (err: any) {
       console.error(err);
-      setUploadError(err.message || 'Error generating tailored interview questions.');
+      setUploadError(err.message || 'Error generating tailored interview session.');
     } finally {
       setIsCreatingInterview(false);
     }
@@ -233,24 +221,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const interviewStylesList = [
     {
       id: 'technical' as InterviewStyle,
-      name: 'Technical Round',
+      name: 'Technical Round (DSA, Projects & Stack)',
       icon: Code2,
-      desc: 'Coding architecture, algorithms, tech stack fundamentals, and deep edge cases.',
-      badgeColor: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
+      desc: 'Coding, Data Structures & Algorithms, candidate project architecture, and tech stack internals.',
     },
     {
       id: 'managerial' as InterviewStyle,
-      name: 'Managerial Round',
+      name: 'Managerial & Architecture Round',
       icon: Users,
-      desc: 'Project ownership, team conflict resolution, product trade-offs, and prioritization.',
-      badgeColor: 'text-purple-500 bg-purple-500/10 border-purple-500/20',
+      desc: 'Project ownership, system trade-offs, cross-functional conflicts, and engineering prioritization.',
     },
     {
       id: 'hr' as InterviewStyle,
-      name: 'HR & Cultural Round',
+      name: 'HR & Culture Fit Round',
       icon: Briefcase,
-      desc: 'Company culture fit, career vision, behavioural STAR scenarios, and communication.',
-      badgeColor: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+      desc: 'Behavioral STAR scenarios, company culture alignment, career vision, and communication style.',
     },
   ];
 
@@ -277,20 +262,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="max-w-2xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-theme-primary-light text-theme-primary-color border border-theme-primary/20">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>AI-Powered Voice Mock Hiring Platform</span>
+            <span>AI Voice Mock Interview Platform (Groq Powered)</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-theme-primary">
-            Master Corporate Hiring Interviews with Conversational AI
+            Master Technical, DSA, and Project Hiring Interviews
           </h1>
           <p className="text-sm text-theme-secondary leading-relaxed">
-            Practice realistic, interactive voice interviews tailored to your exact resume. Choose from Technical, Managerial, or HR rounds with automatic depth levels and instant hiring analytics.
+            Experience authentic corporate interviews with conversational AI that adapts to your answers, probes your real resume projects, checks DSA fundamentals, and gently coaches you through natural pauses.
           </p>
         </div>
       </div>
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Candidate Resume & Profile */}
+        {/* Left Column: Resume Deep Scan & Analytics */}
         <div className="lg:col-span-7 space-y-6">
           {!profile && !isUploading && !isParsing ? (
             <div className="card p-8 text-center space-y-6">
@@ -298,9 +283,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <Upload className="w-8 h-8 text-theme-primary-color" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-bold text-theme-primary">Upload Candidate Resume</h3>
+                <h3 className="text-lg font-bold text-theme-primary">Upload Resume for Deep AI Scan</h3>
                 <p className="text-xs sm:text-sm text-theme-secondary max-w-md mx-auto">
-                  Upload your CV to automatically extract competencies, customize questions, and train on your actual experience.
+                  Groq scans projects, tech stacks, and highlights critical technical gaps (DSA, architecture, edge cases) tailored for hiring.
                 </p>
               </div>
 
@@ -344,7 +329,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       disabled={!pasteText.trim()}
                       className="btn-primary text-xs"
                     >
-                      Analyze Resume
+                      Start Deep Scan
                     </button>
                   </div>
                 </form>
@@ -353,9 +338,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           ) : isUploading || isParsing ? (
             <div className="card p-12 text-center space-y-4">
               <div className="w-10 h-10 border-4 border-theme-primary border-t-transparent rounded-full animate-spin mx-auto" />
-              <h4 className="font-semibold text-theme-primary">Analyzing Resume Competencies...</h4>
+              <h4 className="font-semibold text-theme-primary">Performing Deep Resume & Project Scan...</h4>
               <p className="text-xs text-theme-tertiary">
-                Extracting technical skills, target roles, and tailored interview topics via Groq AI.
+                Extracting projects, architecture details, tech stack nuances, and identifying key DSA/system gaps with Groq AI.
               </p>
             </div>
           ) : (
@@ -366,9 +351,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <FileText className="w-5 h-5 text-theme-primary-color" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-theme-primary text-base">Candidate Profile Active</h3>
+                    <h3 className="font-bold text-theme-primary text-base">Candidate Profile & Projects Scanned</h3>
                     <p className="text-xs text-theme-tertiary">
-                      Targeting: <span className="font-semibold text-theme-secondary">{profile?.target_role}</span> ({profile?.experience_level})
+                      Target Role: <span className="font-semibold text-theme-secondary">{profile?.target_role}</span> ({profile?.experience_level})
                     </p>
                   </div>
                 </div>
@@ -377,14 +362,99 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   className="flex items-center gap-1 text-xs text-theme-tertiary hover:text-theme-primary transition-colors"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Update Resume</span>
+                  <span>Rescan Resume</span>
                 </button>
               </div>
+
+              {/* Extracted Projects Section */}
+              {profile?.extracted_projects && profile.extracted_projects.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-theme-tertiary uppercase tracking-wider flex items-center gap-1.5">
+                    <FolderGit2 className="w-3.5 h-3.5 text-blue-500" /> Extracted Resume Projects (Targeted for Interview)
+                  </span>
+                  <div className="space-y-2">
+                    {profile.extracted_projects.map((proj, idx) => (
+                      <div key={idx} className="p-3 bg-theme-surface-alt/60 border border-theme rounded-xl space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <h5 className="text-xs font-bold text-theme-primary">{proj.name}</h5>
+                          <div className="flex gap-1 flex-wrap">
+                            {proj.technologies.slice(0, 4).map((tech, tIdx) => (
+                              <span key={tIdx} className="text-[10px] px-1.5 py-0.5 rounded bg-theme-surface border border-theme text-theme-secondary font-mono">
+                                {tech}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-theme-secondary leading-snug">{proj.description}</p>
+                        {proj.potentialQuestions && proj.potentialQuestions.length > 0 && (
+                          <div className="pt-1 text-[10px] text-theme-tertiary italic">
+                            Expected prompt: "{proj.potentialQuestions[0]}"
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Extracted Work Experience Section */}
+              {profile?.extracted_experience && profile.extracted_experience.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-theme-tertiary uppercase tracking-wider flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-indigo-500" /> Extracted Work Experience & Roles
+                  </span>
+                  <div className="space-y-2">
+                    {profile.extracted_experience.map((exp, idx) => (
+                      <div key={idx} className="p-3 bg-theme-surface-alt/60 border border-theme rounded-xl space-y-1">
+                        <div className="flex items-center justify-between">
+                          <h5 className="text-xs font-bold text-theme-primary">
+                            {exp.role} • <span className="font-normal text-theme-secondary">{exp.company}</span>
+                          </h5>
+                          {exp.duration && (
+                            <span className="text-[10px] text-theme-tertiary font-mono">
+                              {exp.duration}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-theme-secondary leading-snug">{exp.description}</p>
+                        {exp.keyContributions && exp.keyContributions.length > 0 && (
+                          <div className="flex flex-wrap gap-1 pt-1">
+                            {exp.keyContributions.map((kc, kIdx) => (
+                              <span key={kIdx} className="text-[10px] px-1.5 py-0.5 rounded bg-theme-surface border border-theme text-theme-tertiary">
+                                • {kc}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Extracted Achievements Section */}
+              {profile?.extracted_achievements && profile.extracted_achievements.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-theme-tertiary uppercase tracking-wider flex items-center gap-1.5">
+                    <Trophy className="w-3.5 h-3.5 text-amber-500" /> Standout Achievements & Accolades
+                  </span>
+                  <div className="space-y-2">
+                    {profile.extracted_achievements.map((ach, idx) => (
+                      <div key={idx} className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl space-y-0.5">
+                        <h5 className="text-xs font-bold text-theme-primary flex items-center gap-1.5">
+                          <span>🏆</span> {ach.title}
+                        </h5>
+                        <p className="text-[11px] text-theme-secondary leading-snug">{ach.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Skills Tags */}
               <div className="space-y-2">
                 <span className="text-[11px] font-bold text-theme-tertiary uppercase tracking-wider">
-                  Extracted Skills & Strengths
+                  Extracted Core Tech Stacks
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {profile?.skills.map((skill, idx) => (
@@ -398,19 +468,37 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
               </div>
 
-              {/* Recommended Focus Areas */}
-              {profile?.focus_areas && profile.focus_areas.length > 0 && (
-                <div className="p-3.5 bg-theme-surface-alt/60 border border-theme rounded-xl space-y-1.5">
-                  <span className="text-[11px] font-bold text-theme-tertiary uppercase tracking-wider">
-                    Targeted Interview Focus Areas
-                  </span>
-                  <ul className="text-xs text-theme-secondary space-y-1 list-disc list-inside">
-                    {profile.focus_areas.map((area, idx) => (
-                      <li key={idx}>{area}</li>
+              {/* HIGH PRIORITY FOCUS AREAS & CRITICAL GAPS */}
+              <div className="space-y-2">
+                <span className="text-[11px] font-bold text-theme-tertiary uppercase tracking-wider flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> Targeted Interview Focus Areas & Critical Gaps
+                </span>
+
+                {profile?.detailed_focus_areas && profile.detailed_focus_areas.length > 0 ? (
+                  <div className="space-y-2">
+                    {profile.detailed_focus_areas.map((gap, idx) => (
+                      <div key={idx} className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                            <Target className="w-3.5 h-3.5" /> {gap.topic}
+                          </span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                            {gap.category}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-theme-secondary">{gap.reason}</p>
+                        <p className="text-[11px] text-theme-tertiary flex items-center gap-1">
+                          <Lightbulb className="w-3 h-3 text-amber-500" /> Prep Advice: {gap.recommendedPrep}
+                        </p>
+                      </div>
                     ))}
-                  </ul>
-                </div>
-              )}
+                  </div>
+                ) : (
+                  <div className="p-3 bg-theme-surface-alt rounded-xl text-xs text-theme-secondary">
+                    {profile?.focus_areas.join(', ')}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -419,16 +507,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <BarChart2 className="w-4 h-4 text-theme-primary-color" />
-                <h3 className="text-base font-bold text-theme-primary">Interview History & Analytics</h3>
+                <h3 className="text-base font-bold text-theme-primary">Interview Performance History</h3>
               </div>
               <span className="text-xs text-theme-tertiary">
-                {interviews.length} {interviews.length === 1 ? 'session' : 'sessions'}
+                {interviews.length} sessions
               </span>
             </div>
 
             {interviews.length === 0 ? (
               <div className="text-xs sm:text-sm text-theme-tertiary italic p-6 bg-theme-surface-alt border border-theme border-dashed rounded-2xl text-center">
-                No mock interviews completed yet. Configure and launch your first AI round!
+                No mock interviews completed yet. Configure and launch your first AI interview!
               </div>
             ) : (
               <div className="space-y-3">
@@ -448,6 +536,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           {iv.interview_style && (
                             <span className="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-full bg-theme-primary-light text-theme-primary-color border border-theme-primary/20">
                               {iv.interview_style}
+                            </span>
+                          )}
+                          {iv.interview_mode === 'conversational' && (
+                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/20">
+                              Conversational
                             </span>
                           )}
                           {iv.status === 'completed' && isPassed !== null && (
@@ -489,7 +582,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             onClick={() => onStartInterview(iv.id)}
                             className="btn-primary text-xs py-1.5 px-3"
                           >
-                            <span>Resume Round</span>
+                            <span>Resume</span>
                             <ArrowRight className="w-3.5 h-3.5" />
                           </button>
                         ) : (
@@ -518,14 +611,58 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <Play className="w-4 h-4 text-theme-primary-color" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-theme-primary">Create Mock Interview</h3>
-                  <p className="text-[11px] text-theme-tertiary">Configure round & automatic depth levels</p>
+                  <h3 className="font-bold text-base text-theme-primary">Configure Mock Interview</h3>
+                  <p className="text-[11px] text-theme-tertiary">Select mode & round parameters</p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
-              {/* Role Title */}
+              {/* INTERVIEW MODE SELECTOR (Natural Human vs Structured Drill) */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary">
+                  Interview Experience Mode
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setInterviewMode('conversational')}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      interviewMode === 'conversational'
+                        ? 'bg-theme-primary-light border-theme-primary ring-1 ring-theme-primary'
+                        : 'bg-theme-surface border-theme hover:border-theme-hover'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-theme-primary-color" />
+                      <span className="text-xs font-bold text-theme-primary">Natural Voice Flow</span>
+                    </div>
+                    <p className="text-[10px] text-theme-secondary mt-1">
+                      Human interviewer, handles pauses ("take your time"), gives hints if off-topic.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setInterviewMode('structured')}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      interviewMode === 'structured'
+                        ? 'bg-theme-primary-light border-theme-primary ring-1 ring-theme-primary'
+                        : 'bg-theme-surface border-theme hover:border-theme-hover'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <ListOrdered className="w-4 h-4 text-theme-primary-color" />
+                      <span className="text-xs font-bold text-theme-primary">Q&A Drill Mode</span>
+                    </div>
+                    <p className="text-[10px] text-theme-secondary mt-1">
+                      Targeted question count, step-by-step scoring, structured exam style.
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Target Role Title */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary">
                   Target Company Role
@@ -556,10 +693,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </select>
               </div>
 
-              {/* 3 Different Interview Round Styles */}
+              {/* Interview Round Styles (Technical covers DSA, projects, stack) */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary">
-                  Interviewer Style / Round Objective
+                  Interview Round Syllabus
                 </label>
                 <div className="grid grid-cols-1 gap-2">
                   {interviewStylesList.map((style) => {
@@ -596,7 +733,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
               </div>
 
-              {/* Duration & Questions Configuration */}
+              {/* Duration & Questions (Conditioned on Mode) */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary flex items-center gap-1">
@@ -620,40 +757,38 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary flex items-center gap-1">
-                    <Sliders className="w-3.5 h-3.5" /> Questions
-                  </label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {[3, 5, 8].map((num) => (
-                      <button
-                        key={num}
-                        type="button"
-                        onClick={() => setQuestionCount(num)}
-                        className={`py-1.5 text-xs font-semibold rounded-lg border transition-all ${
-                          questionCount === num
-                            ? 'bg-theme-primary text-white border-theme-primary'
-                            : 'bg-theme-surface border-theme text-theme-secondary hover:bg-theme-surface-hover'
-                        }`}
-                      >
-                        {num} Qs
-                      </button>
-                    ))}
+                {interviewMode === 'structured' ? (
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary flex items-center gap-1">
+                      <Sliders className="w-3.5 h-3.5" /> Questions
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[3, 5, 8].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => setQuestionCount(num)}
+                          className={`py-1.5 text-xs font-semibold rounded-lg border transition-all ${
+                            questionCount === num
+                              ? 'bg-theme-primary text-white border-theme-primary'
+                              : 'bg-theme-surface border-theme text-theme-secondary hover:bg-theme-surface-hover'
+                          }`}
+                        >
+                          {num} Qs
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Automatic Depth Levels indicator */}
-              <div className="p-3 bg-theme-surface-alt/70 border border-theme rounded-xl space-y-1">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-bold text-theme-secondary uppercase tracking-wider">
-                    Automatic Question Depths
-                  </span>
-                  <span className="text-theme-primary-color font-semibold">Low • Medium • High</span>
-                </div>
-                <p className="text-[11px] text-theme-tertiary">
-                  AI will dynamically generate balanced questions across fundamentals, practical tools, and scenario architecture.
-                </p>
+                ) : (
+                  <div className="space-y-1.5 flex flex-col justify-center">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-theme-secondary">
+                      Flow Pacing
+                    </label>
+                    <div className="p-2 rounded-lg bg-theme-surface-alt border border-theme text-[11px] text-theme-secondary">
+                      Adaptive Conversational Pacing (Dynamic AI Follow-ups)
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
