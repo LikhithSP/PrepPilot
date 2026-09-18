@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Profile, InterviewStyle, InterviewMode } from '../services/supabase';
 import { db } from '../services/supabase';
 import { groqService, getGroqApiKey } from '../services/groq';
@@ -232,11 +233,11 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
     },
   ];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in font-google">
-      <div className="google-card w-full max-w-2xl bg-theme-surface shadow-2xl overflow-hidden animate-scale-up border border-theme">
-        {/* Google Step Progress Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-theme-surface-alt/50">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md animate-fade-in font-google">
+      <div className="google-card w-full max-w-2xl bg-theme-surface shadow-2xl overflow-hidden animate-scale-up border border-theme flex flex-col max-h-[92vh]">
+        {/* Google Step Progress Header (Fixed Top) */}
+        <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-theme bg-theme-surface-alt/90 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-google-blue">
               <Video className="w-4 h-4" />
@@ -257,29 +258,41 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
           </button>
         </div>
 
-        {/* Step Indicator Pills */}
-        <div className="grid grid-cols-3 gap-1 p-2 bg-theme-surface-alt/30 border-b border-theme text-xs font-medium text-center">
-          <div className={`py-1.5 rounded-full ${step === 1 ? 'bg-blue-50 dark:bg-blue-950/60 text-google-blue font-medium' : 'text-theme-tertiary'}`}>
+        {/* Step Indicator Pills (Fixed Subheader) */}
+        <div className="grid grid-cols-3 gap-1 p-2 bg-theme-surface-alt/40 border-b border-theme text-xs font-medium text-center shrink-0">
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className={`py-1.5 rounded-full transition-all cursor-pointer ${step === 1 ? 'bg-blue-50 dark:bg-blue-950/60 text-google-blue font-semibold shadow-2xs' : 'text-theme-tertiary hover:text-theme-secondary'}`}
+          >
             1. Resume Ingestion
-          </div>
-          <div className={`py-1.5 rounded-full ${step === 2 ? 'bg-blue-50 dark:bg-blue-950/60 text-google-blue font-medium' : 'text-theme-tertiary'}`}>
+          </button>
+          <button
+            type="button"
+            onClick={() => setStep(2)}
+            className={`py-1.5 rounded-full transition-all cursor-pointer ${step === 2 ? 'bg-blue-50 dark:bg-blue-950/60 text-google-blue font-semibold shadow-2xs' : 'text-theme-tertiary hover:text-theme-secondary'}`}
+          >
             2. Choose Round
-          </div>
-          <div className={`py-1.5 rounded-full ${step === 3 ? 'bg-blue-50 dark:bg-blue-950/60 text-google-blue font-medium' : 'text-theme-tertiary'}`}>
+          </button>
+          <button
+            type="button"
+            onClick={() => setStep(3)}
+            className={`py-1.5 rounded-full transition-all cursor-pointer ${step === 3 ? 'bg-blue-50 dark:bg-blue-950/60 text-google-blue font-semibold shadow-2xs' : 'text-theme-tertiary hover:text-theme-secondary'}`}
+          >
             3. Join Meet Room
-          </div>
+          </button>
         </div>
 
         {/* Error Alert */}
         {errorMsg && (
-          <div className="mx-6 mt-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-google-red text-xs rounded-xl flex items-center gap-2">
+          <div className="mx-6 mt-3 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-google-red text-xs rounded-xl flex items-center gap-2 shrink-0">
             <AlertTriangle className="w-4 h-4 flex-shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
-        {/* Content Body */}
-        <div className="p-6">
+        {/* Scrollable Content Body with Custom Scrollbar */}
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5">
           {/* STEP 1: RESUME INGESTION */}
           {step === 1 && (
             <div className="space-y-5 animate-fade-in">
@@ -370,7 +383,7 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
 
           {/* STEP 2: CHOOSE INTERVIEW TYPE */}
           {step === 2 && (
-            <div className="space-y-5 animate-fade-in">
+            <div className="space-y-4 animate-fade-in">
               <div className="space-y-1">
                 <h4 className="text-base font-normal text-theme-primary">Select Interview Round</h4>
                 <p className="text-xs text-theme-secondary">
@@ -378,7 +391,7 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
                 </p>
               </div>
 
-              {/* 4 Cards */}
+              {/* 4 Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {rounds.map((r) => {
                   const isSelected = interviewStyle === r.id;
@@ -389,15 +402,15 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
                       onClick={() => setInterviewStyle(r.id)}
                       className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
                         isSelected
-                          ? 'bg-blue-50/60 dark:bg-blue-950/40 border-google-blue shadow-2xs'
-                          : 'bg-theme-surface border-theme hover:bg-theme-surface-hover'
+                          ? 'bg-blue-50/70 dark:bg-blue-950/50 border-google-blue ring-1 ring-google-blue shadow-2xs'
+                          : 'bg-theme-surface border-theme hover:border-theme-hover hover:bg-theme-surface-hover'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <div
                           className="w-8 h-8 rounded-full flex items-center justify-center"
                           style={{
-                            backgroundColor: isSelected ? r.color : 'rgba(0,0,0,0.06)',
+                            backgroundColor: isSelected ? r.color : 'rgba(128,128,128,0.12)',
                             color: isSelected ? '#ffffff' : r.color,
                           }}
                         >
@@ -416,15 +429,15 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
                 })}
               </div>
 
-              {/* Parameters */}
+              {/* Seniority & Duration Parameters */}
               {interviewStyle !== 'gd' && (
-                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-theme">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-theme">
                   <div className="space-y-1">
-                    <label className="text-xs text-theme-tertiary">Seniority Level</label>
+                    <label className="text-xs font-medium text-theme-tertiary">Seniority Level</label>
                     <select
                       value={experienceLevel}
                       onChange={(e) => setExperienceLevel(e.target.value)}
-                      className="w-full p-2 bg-theme-surface border border-theme rounded-lg text-xs font-medium text-theme-primary focus:outline-none"
+                      className="w-full p-2 bg-theme-surface border border-theme rounded-lg text-xs font-medium text-theme-primary focus:outline-none focus:border-google-blue"
                     >
                       <option value="Junior (L3 / 0-2 yrs)">Junior (L3 / 0-2 yrs)</option>
                       <option value="Mid-Level (L4 / 3-5 yrs)">Mid-Level (L4 / 3-5 yrs)</option>
@@ -434,11 +447,11 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs text-theme-tertiary">Duration</label>
+                    <label className="text-xs font-medium text-theme-tertiary">Duration</label>
                     <select
                       value={durationMinutes}
                       onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                      className="w-full p-2 bg-theme-surface border border-theme rounded-lg text-xs font-medium text-theme-primary focus:outline-none"
+                      className="w-full p-2 bg-theme-surface border border-theme rounded-lg text-xs font-medium text-theme-primary focus:outline-none focus:border-google-blue"
                     >
                       <option value={10}>10 Minutes (Quick Screen)</option>
                       <option value={15}>15 Minutes (Standard Mock)</option>
@@ -447,25 +460,6 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
                   </div>
                 </div>
               )}
-
-              {/* Step Navigation */}
-              <div className="flex items-center justify-between pt-3 border-t border-theme">
-                <button
-                  onClick={() => setStep(1)}
-                  className="btn-google-outlined text-xs py-2 px-4 cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Back to Resume</span>
-                </button>
-
-                <button
-                  onClick={() => setStep(3)}
-                  className="btn-google-primary text-xs py-2 px-5 cursor-pointer"
-                >
-                  <span>Continue</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
             </div>
           )}
 
@@ -488,34 +482,67 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
                     : 'The Google AI Interviewer will open with an introduction and adapt to your spoken voice.'}
                 </p>
               </div>
-
-              <div className="pt-4 flex items-center justify-center gap-3">
-                <button
-                  onClick={() => setStep(2)}
-                  className="btn-google-outlined text-xs py-2.5 px-5 cursor-pointer"
-                >
-                  Back
-                </button>
-
-                <button
-                  onClick={handleLaunchMeetRoom}
-                  disabled={isCreatingInterview}
-                  className="btn-google-primary text-sm py-2.5 px-8 cursor-pointer"
-                >
-                  {isCreatingInterview ? (
-                    <span>Launching Google Meet Room...</span>
-                  ) : (
-                    <>
-                      <span>Join Call Now</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
           )}
         </div>
+
+        {/* Sticky Fixed Bottom Navigation Footer */}
+        <div className="px-5 sm:px-6 py-3.5 border-t border-theme bg-theme-surface-alt/90 flex items-center justify-between shrink-0">
+          {step === 1 ? (
+            <div></div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setStep((s) => (s === 3 ? 2 : 1) as 1 | 2 | 3)}
+              className="btn-google-outlined text-xs py-2 px-4 cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back</span>
+            </button>
+          )}
+
+          {step === 1 && profile && (
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              className="btn-google-primary text-xs py-2 px-5 cursor-pointer ml-auto"
+            >
+              <span>Choose Round</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {step === 2 && (
+            <button
+              type="button"
+              onClick={() => setStep(3)}
+              className="btn-google-primary text-xs py-2 px-5 cursor-pointer"
+            >
+              <span>Continue</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {step === 3 && (
+            <button
+              type="button"
+              onClick={handleLaunchMeetRoom}
+              disabled={isCreatingInterview}
+              className="btn-google-primary text-sm py-2.5 px-7 cursor-pointer"
+            >
+              {isCreatingInterview ? (
+                <span>Launching Google Meet Room...</span>
+              ) : (
+                <>
+                  <span>Join Call Now</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

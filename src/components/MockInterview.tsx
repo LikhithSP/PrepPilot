@@ -17,7 +17,6 @@ import {
   ChevronRight,
   Clock,
   User,
-  Bot,
   PhoneOff,
   Edit3,
   Lightbulb,
@@ -592,13 +591,18 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
       {/* GOOGLE MEET VIDEO TILES STAGE (SPLIT SCREEN) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[460px]">
         {/* TILE 1: GOOGLE AI INTERVIEWER */}
-        <div className="meet-tile p-6 flex flex-col justify-between relative bg-slate-900 text-white min-h-[380px]">
-          {/* Top Audio Repeat / Mute */}
+        <div className="p-6 flex flex-col justify-between relative bg-white dark:bg-[#0f141c] text-neutral-900 dark:text-white min-h-[400px] border border-[#dadce0] dark:border-white/10 rounded-2xl shadow-sm dark:shadow-xl overflow-hidden transition-colors">
+          {/* Top Google Meet Header Badge */}
           <div className="flex items-center justify-between z-10">
-            <span className="text-xs font-medium bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full text-slate-200 flex items-center gap-1.5">
-              <Bot className="w-3.5 h-3.5 text-google-blue" />
-              <span>Google Hiring Committee</span>
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium bg-neutral-100 dark:bg-black/50 text-neutral-800 dark:text-slate-200 px-3 py-1 rounded-full flex items-center gap-1.5 border border-neutral-200 dark:border-white/10 shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-google-blue animate-pulse" />
+                <span>Google Hiring Committee</span>
+              </span>
+              <span className="text-[11px] font-mono text-neutral-500 dark:text-slate-400 bg-neutral-100 dark:bg-white/5 px-2 py-0.5 rounded-full border border-neutral-200 dark:border-white/5 hidden sm:inline-block">
+                Principal Architect
+              </span>
+            </div>
 
             <button
               onClick={() =>
@@ -606,39 +610,181 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
                   ? stopSpeaking()
                   : speakText(aiSpokenCaption || currentQuestion.question_text)
               }
-              className="p-2 rounded-full bg-black/40 hover:bg-black/60 text-white transition-all cursor-pointer"
-              title={isSpeaking ? 'Mute AI' : 'Repeat Question'}
+              className="p-2 rounded-full bg-neutral-100 dark:bg-black/40 hover:bg-neutral-200 dark:hover:bg-black/60 text-neutral-700 dark:text-white transition-all cursor-pointer border border-neutral-200 dark:border-white/10"
+              title={isSpeaking ? 'Mute AI Audio' : 'Repeat Question'}
             >
               {isSpeaking ? (
                 <Volume2 className="w-4 h-4 text-google-blue animate-pulse" />
               ) : (
-                <VolumeX className="w-4 h-4 text-slate-400" />
+                <VolumeX className="w-4 h-4 text-neutral-400 dark:text-slate-400" />
               )}
             </button>
           </div>
 
-          {/* Center Avatar & Waveform */}
-          <div className="my-auto py-8 text-center space-y-5">
+          {/* Center Stage: Animated Person Avatar (Eyes Blinking & Mouth Moving when Speaking) */}
+          <div className="my-auto py-4 text-center space-y-4">
             <div className="relative inline-flex items-center justify-center">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 flex items-center justify-center text-white shadow-xl">
-                <Bot className="w-12 h-12" />
-              </div>
+              {/* Outer Glow Halo when speaking */}
+              <div 
+                className={`absolute -inset-4 rounded-full transition-all duration-300 pointer-events-none ${
+                  isSpeaking 
+                    ? 'bg-blue-500/20 blur-xl scale-110' 
+                    : 'bg-transparent'
+                }`} 
+              />
+
+              {/* Glowing ring borders */}
               {isSpeaking && (
-                <span className="absolute inset-0 rounded-full border-4 border-blue-400 animate-ping opacity-75" />
+                <div className="absolute -inset-2 rounded-full border border-blue-400/40 animate-ping opacity-60 pointer-events-none" />
               )}
+
+              {/* Person Avatar Face Container */}
+              <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full bg-gradient-to-b from-[#1e293b] to-[#0f172a] border-2 border-blue-500/40 p-1 flex items-center justify-center shadow-2xl relative overflow-hidden animate-person-sway">
+                <svg
+                  viewBox="0 0 120 120"
+                  className="w-full h-full"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* Background radial gradient */}
+                  <defs>
+                    <radialGradient id="faceGrad" cx="50%" cy="40%" r="60%">
+                      <stop offset="0%" stopColor="#ffd8b3" />
+                      <stop offset="100%" stopColor="#f3b482" />
+                    </radialGradient>
+                    <linearGradient id="hairGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#2c3e50" />
+                      <stop offset="100%" stopColor="#1a252f" />
+                    </linearGradient>
+                    <linearGradient id="suitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#1e3a8a" />
+                      <stop offset="100%" stopColor="#0f172a" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Shoulders / Professional Suit */}
+                  <path
+                    d="M20 115 C20 95 38 88 60 88 C82 88 100 95 100 115 Z"
+                    fill="url(#suitGrad)"
+                  />
+                  {/* White Collar & Tie */}
+                  <polygon points="60,88 52,100 68,100" fill="#ffffff" />
+                  <polygon points="60,98 56,115 64,115" fill="#3b82f6" />
+
+                  {/* Neck */}
+                  <rect x="52" y="70" width="16" height="20" rx="3" fill="#e59866" />
+
+                  {/* Head / Face */}
+                  <ellipse cx="60" cy="56" rx="26" ry="30" fill="url(#faceGrad)" />
+
+                  {/* Hair Style */}
+                  <path
+                    d="M33 52 C31 32 40 22 60 22 C80 22 89 32 87 52 C82 38 75 32 60 32 C45 32 38 38 33 52 Z"
+                    fill="url(#hairGrad)"
+                  />
+                  {/* Side Hair */}
+                  <path d="M33 50 C33 42 36 34 40 30 C36 40 35 50 36 58 Z" fill="url(#hairGrad)" />
+                  <path d="M87 50 C87 42 84 34 80 30 C84 40 85 50 84 58 Z" fill="url(#hairGrad)" />
+
+                  {/* Eyebrows (Smart subtle arch) */}
+                  <path
+                    d="M44 45 Q50 43 55 45"
+                    stroke="#2c3e50"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M65 45 Q70 43 76 45"
+                    stroke="#2c3e50"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+
+                  {/* Eyes (With blinking animation) */}
+                  <g className="animate-eye-blink">
+                    {/* Left Eye */}
+                    <ellipse cx="49" cy="51" rx="4" ry="4" fill="#ffffff" />
+                    <circle cx="49.5" cy="51" r="2.4" fill="#1e293b" />
+                    <circle cx="48.5" cy="50" r="0.8" fill="#ffffff" />
+
+                    {/* Right Eye */}
+                    <ellipse cx="71" cy="51" rx="4" ry="4" fill="#ffffff" />
+                    <circle cx="70.5" cy="51" r="2.4" fill="#1e293b" />
+                    <circle cx="69.5" cy="50" r="0.8" fill="#ffffff" />
+                  </g>
+
+                  {/* Subtle Glasses (Tech Engineer look) */}
+                  <rect
+                    x="42"
+                    y="46"
+                    width="14"
+                    height="10"
+                    rx="3"
+                    fill="none"
+                    stroke="#3b82f6"
+                    strokeWidth="1.2"
+                    opacity="0.85"
+                  />
+                  <rect
+                    x="64"
+                    y="46"
+                    width="14"
+                    height="10"
+                    rx="3"
+                    fill="none"
+                    stroke="#3b82f6"
+                    strokeWidth="1.2"
+                    opacity="0.85"
+                  />
+                  <line x1="56" y1="51" x2="64" y2="51" stroke="#3b82f6" strokeWidth="1.2" />
+
+                  {/* Nose */}
+                  <path
+                    d="M60 52 L58 61 L62 61"
+                    stroke="#d38b5d"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+
+                  {/* Mouth: When Speaking -> Animated subtle talk, when listening -> Warm smile */}
+                  {isSpeaking ? (
+                    <g className="animate-mouth-talk">
+                      {/* Natural subtle speaking mouth */}
+                      <ellipse cx="60" cy="70.5" rx="3.8" ry="2.2" fill="#4a151b" />
+                      {/* Upper teeth hint */}
+                      <rect x="58" y="69.2" width="4" height="1.1" rx="0.5" fill="#ffffff" />
+                      {/* Lower lip hint */}
+                      <path d="M57 71.5 Q60 73 63 71.5" stroke="#b95d43" strokeWidth="1" strokeLinecap="round" fill="none" />
+                    </g>
+                  ) : (
+                    /* Gentle Closed Smile */
+                    <path
+                      d="M55 69.5 Q60 73 65 69.5"
+                      stroke="#873e23"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                  )}
+                </svg>
+              </div>
             </div>
 
-            {/* Google Meet Speaking Wave Bars */}
-            <div className="flex items-center justify-center gap-1.5 h-10">
-              {[0.5, 1.2, 0.7, 1.6, 0.9, 1.4, 0.6, 1.1, 0.8].map((s, i) => (
+            {/* Google Voice Spectrum Waveform */}
+            <div className="flex items-center justify-center gap-1.5 h-8">
+              {[0.4, 0.9, 0.6, 1.4, 0.8, 1.3, 0.5, 1.1, 0.7].map((s, i) => (
                 <div
                   key={i}
                   className={`w-1 rounded-full transition-all duration-150 ${
-                    isSpeaking ? 'bg-blue-400 animate-pulse' : 'bg-slate-700 h-2'
+                    isSpeaking 
+                      ? 'bg-google-blue dark:bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(26,115,232,0.6)]' 
+                      : 'bg-neutral-300 dark:bg-slate-700 h-1.5'
                   }`}
                   style={{
-                    height: isSpeaking ? `${Math.min(36, 12 * s * 2)}px` : '6px',
-                    animationDelay: `${i * 0.1}s`,
+                    height: isSpeaking ? `${Math.min(32, 10 * s * 2.4)}px` : '5px',
+                    animationDelay: `${i * 0.08}s`,
                   }}
                 />
               ))}
@@ -648,37 +794,46 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
           {/* Google Meet Participant Bottom Label & Spoken Caption */}
           <div className="z-10 space-y-2">
             {captionsEnabled && (
-              <div className="p-3 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 text-xs text-slate-100 font-medium leading-relaxed">
+              <div className="p-3.5 rounded-xl bg-neutral-50 dark:bg-black/70 text-neutral-800 dark:text-slate-100 border border-neutral-200 dark:border-white/15 text-xs font-medium leading-relaxed shadow-xs dark:shadow-lg">
                 "{aiSpokenCaption || currentQuestion?.question_text}"
               </div>
             )}
-            <div className="flex items-center justify-between text-xs text-slate-300">
-              <span className="font-medium">Google AI Interviewer (Principal Architect)</span>
+            <div className="flex items-center justify-between text-xs text-neutral-600 dark:text-slate-300">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-neutral-900 dark:text-white">Google AI Interviewer</span>
+                <span className="text-[11px] text-neutral-500 dark:text-slate-400">• Principal Systems Architect</span>
+              </div>
               {isSpeaking ? (
-                <span className="text-blue-400 font-medium flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                <span className="text-google-blue dark:text-blue-400 font-medium flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950/60 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-800/60">
+                  <span className="w-2 h-2 rounded-full bg-google-blue dark:bg-blue-400 animate-pulse" />
                   Speaking
                 </span>
               ) : (
-                <span className="text-slate-400">Listening</span>
+                <span className="text-neutral-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 dark:bg-slate-500" />
+                  Listening
+                </span>
               )}
             </div>
           </div>
         </div>
 
         {/* TILE 2: CANDIDATE (YOU) */}
-        <div className="meet-tile p-6 flex flex-col justify-between relative bg-slate-950 text-white min-h-[380px]">
+        <div className="p-6 flex flex-col justify-between relative bg-white dark:bg-[#0b0f17] text-neutral-900 dark:text-white min-h-[400px] border border-[#dadce0] dark:border-white/10 rounded-2xl shadow-sm dark:shadow-xl overflow-hidden transition-colors">
           {/* Candidate Top Status */}
           <div className="flex items-center justify-between z-10">
-            <span className="text-xs font-medium bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full text-slate-200 flex items-center gap-1.5">
+            <span className="text-xs font-medium bg-neutral-100 dark:bg-black/50 text-neutral-800 dark:text-slate-200 px-3 py-1 rounded-full flex items-center gap-1.5 border border-neutral-200 dark:border-white/10 shadow-2xs">
               <User className="w-3.5 h-3.5 text-google-green" />
               <span>You</span>
             </span>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-slate-400">
+                LIVE STT
+              </span>
               <button
                 onClick={() => setManualEditMode(!manualEditMode)}
-                className="p-1.5 rounded-full bg-black/40 hover:bg-black/60 text-slate-300 transition-colors"
+                className="p-1.5 rounded-full bg-neutral-100 dark:bg-black/40 hover:bg-neutral-200 dark:hover:bg-black/60 text-neutral-600 dark:text-slate-300 transition-colors border border-neutral-200 dark:border-white/10"
                 title="Edit transcript"
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -689,21 +844,23 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
           {/* Center Speech Stream or Avatar */}
           <div className="my-auto py-4 flex flex-col justify-center space-y-3">
             {!manualEditMode ? (
-              <div className="p-4 rounded-xl bg-slate-900/80 border border-white/10 min-h-[160px] max-h-[220px] overflow-y-auto space-y-2 text-xs">
+              <div className="p-4 sm:p-5 rounded-xl bg-neutral-50 dark:bg-slate-900/90 border border-neutral-200 dark:border-white/10 min-h-[170px] max-h-[220px] overflow-y-auto space-y-2 text-xs shadow-inner">
                 {spokenTranscript || interimText ? (
-                  <p className="text-slate-100 leading-relaxed font-normal whitespace-pre-wrap">
+                  <p className="text-neutral-800 dark:text-slate-100 leading-relaxed font-normal whitespace-pre-wrap">
                     {spokenTranscript}{' '}
-                    <span className="text-slate-400 italic">{interimText}</span>
+                    <span className="text-neutral-500 dark:text-slate-400 italic">{interimText}</span>
                   </p>
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center py-6 text-slate-400 space-y-2">
-                    <Mic className="w-6 h-6 stroke-1 text-slate-500" />
-                    <p className="text-xs font-medium text-slate-300">
+                  <div className="h-full flex flex-col items-center justify-center text-center py-6 text-neutral-500 dark:text-slate-400 space-y-2">
+                    <div className="w-12 h-12 rounded-full bg-neutral-200/70 dark:bg-white/5 border border-neutral-300 dark:border-white/10 flex items-center justify-center text-neutral-600 dark:text-slate-400">
+                      <Mic className="w-5 h-5 stroke-1 text-neutral-500 dark:text-slate-400" />
+                    </div>
+                    <p className="text-xs font-medium text-neutral-700 dark:text-slate-300">
                       {isListening
                         ? 'Microphone active. Start speaking to answer.'
                         : 'Unmute microphone below to talk.'}
                     </p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-neutral-400 dark:text-slate-500 max-w-xs">
                       {interview.interview_style === 'gd'
                         ? '5-minute non-stop group discussion speech.'
                         : 'Speak naturally. Google AI responds when you pause.'}
@@ -716,21 +873,21 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
                 value={spokenTranscript}
                 onChange={(e) => setSpokenTranscript(e.target.value)}
                 placeholder="Type or edit your response..."
-                className="w-full p-3 bg-slate-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500 h-36 resize-none"
+                className="w-full p-3 bg-neutral-50 dark:bg-slate-900 border border-neutral-300 dark:border-white/10 rounded-xl text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-google-blue h-36 resize-none"
               />
             )}
           </div>
 
           {/* Candidate Bottom Label */}
-          <div className="z-10 flex items-center justify-between text-xs text-slate-300">
-            <span className="font-medium">{profile?.name || 'Candidate (You)'}</span>
+          <div className="z-10 flex items-center justify-between text-xs text-neutral-600 dark:text-slate-300">
+            <span className="font-medium text-neutral-900 dark:text-white">{profile?.name || 'Candidate (You)'}</span>
             {isListening ? (
-              <span className="text-google-green font-medium flex items-center gap-1">
+              <span className="text-emerald-700 dark:text-google-green font-medium flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/60">
                 <span className="w-2 h-2 rounded-full bg-google-green animate-ping" />
                 Mic On
               </span>
             ) : (
-              <span className="text-google-red font-medium flex items-center gap-1">
+              <span className="text-red-700 dark:text-google-red font-medium flex items-center gap-1.5 bg-red-50 dark:bg-red-950/60 px-2.5 py-0.5 rounded-full border border-red-200 dark:border-red-800/60">
                 <MicOff className="w-3.5 h-3.5" />
                 Muted
               </span>

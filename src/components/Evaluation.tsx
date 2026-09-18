@@ -130,16 +130,16 @@ export const Evaluation: React.FC<EvaluationProps> = ({
       <div className="google-card p-6 sm:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium">
+            <div className="flex items-center">
               {isPassed ? (
-                <span className="google-chip bg-green-50 dark:bg-green-950/60 text-google-green border border-green-200 dark:border-green-800">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Google Hiring Committee Decision: Pass (Recommend Hire)</span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 shadow-2xs">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
+                  <span>Pass (Recommend Hire)</span>
                 </span>
               ) : (
-                <span className="google-chip bg-red-50 dark:bg-red-950/60 text-google-red border border-red-200 dark:border-red-800">
-                  <XCircle className="w-4 h-4" />
-                  <span>Google Hiring Committee Decision: Needs Preparation</span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/80 shadow-2xs">
+                  <XCircle className="w-4 h-4 text-red-600 dark:text-red-400 stroke-[2.5]" />
+                  <span>Needs Preparation</span>
                 </span>
               )}
             </div>

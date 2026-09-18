@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getGroqApiKey, setGroqApiKey } from '../services/groq';
 import { isSupabaseConfigured } from '../services/supabase';
 import { X, Shield, Check, AlertCircle, Sun, Moon, Key } from 'lucide-react';
@@ -33,8 +34,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in font-google">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in font-google">
       <div className="google-card w-full max-w-md shadow-xl animate-scale-up overflow-hidden bg-theme-surface">
         {/* Google Dialog Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-theme bg-theme-surface-alt/50">
@@ -157,6 +158,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

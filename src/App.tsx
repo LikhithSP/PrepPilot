@@ -75,46 +75,17 @@ function App() {
               </div>
             </div>
 
-            {/* Middle: Candidate Track Selector & Global Search Input */}
-            <div className="hidden lg:flex items-center gap-3 flex-1 max-w-xl mx-6">
-              {/* Candidate Sandbox Selector */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-theme-surface-alt border border-theme text-xs text-theme-secondary shrink-0 cursor-pointer hover:border-theme-hover transition-colors">
-                <span className="w-2 h-2 rounded-full bg-google-blue" />
-                <span className="font-medium text-theme-primary">Candidate Sandbox: AI/ML Track</span>
-                <svg className="w-3.5 h-3.5 text-theme-tertiary" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-                </svg>
-              </div>
-
-              {/* Search Bar matching screenshot */}
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-theme-tertiary">
-                  <svg className="w-4 h-4 stroke-[2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search interviews, evaluations, dossiers, or rubrics..."
-                  className="w-full pl-9 pr-8 py-1.5 rounded-full bg-theme-surface-alt border border-theme text-xs text-theme-primary placeholder:text-theme-tertiary focus:outline-none focus:border-google-blue focus:bg-theme-surface transition-all"
-                />
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <span className="text-[11px] font-mono text-theme-tertiary bg-theme-surface border border-theme px-1.5 py-0.2 rounded">/</span>
-                </div>
-              </div>
-            </div>
-
             {/* Right Action Suite with LPU Status Pill */}
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Google Cloud LPU Connected status pill moved to the right */}
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-theme-surface-alt border border-theme text-xs text-theme-secondary shadow-2xs">
+              {/* Google Cloud LPU Connected status pill */}
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-theme-surface-alt border border-theme text-xs text-theme-secondary shadow-2xs">
                 <span className="w-2 h-2 rounded-full bg-google-green animate-pulse" />
                 <span className="font-medium text-theme-primary">LPU Active</span>
                 <span className="text-theme-tertiary">•</span>
                 <span className="text-[11px] font-mono text-theme-tertiary">Groq</span>
               </div>
 
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <button
                   onClick={toggleTheme}
                   className="w-10 h-10 rounded-full flex items-center justify-center text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover transition-colors cursor-pointer"
@@ -135,23 +106,16 @@ function App() {
                   <Settings className="w-4 h-4 stroke-[1.8]" />
                 </button>
 
-                {/* Google Apps (9 Dots Waffle Menu Icon) */}
-                <button
-                  onClick={() => setPage('dashboard')}
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover transition-colors cursor-pointer"
-                  title="Google apps"
-                >
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M6 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-12 6c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-12 6c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-                  </svg>
-                </button>
-
-                {/* Google Account Profile Avatar Circle */}
+                {/* Profile Picture with zoom-in focus */}
                 <div 
-                  className="w-8 h-8 rounded-full bg-blue-600 text-white font-medium flex items-center justify-center text-sm shadow-xs select-none cursor-pointer ring-2 ring-blue-600/20 ml-1"
-                  title="Google Account: candidate@gmail.com"
+                  className="w-9 h-9 rounded-full overflow-hidden border border-neutral-300 dark:border-neutral-700 shadow-xs select-none cursor-pointer ring-2 ring-blue-500/20 ml-1.5 flex-shrink-0 relative"
+                  title="Profile Account"
                 >
-                  S
+                  <img
+                    src="https://img.magnific.com/free-vector/man-profile-account-picture_24908-81754.jpg?semt=ais_hybrid&w=740&q=80"
+                    alt="Profile"
+                    className="w-full h-full object-cover scale-150 object-center transition-transform"
+                  />
                 </div>
               </div>
             </div>
