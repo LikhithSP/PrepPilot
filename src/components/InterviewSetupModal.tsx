@@ -259,27 +259,30 @@ export const InterviewSetupModal: React.FC<InterviewSetupModalProps> = ({
         </div>
 
         {/* Step Indicator Pills (Fixed Subheader) */}
-        <div className="grid grid-cols-3 gap-1 p-2 bg-theme-surface-alt/40 border-b border-theme text-xs font-medium text-center shrink-0">
+        <div className="grid grid-cols-3 gap-1 p-1.5 sm:p-2 bg-theme-surface-alt/40 border-b border-theme text-[11px] sm:text-xs font-medium text-center shrink-0">
           <button
             type="button"
             onClick={() => setStep(1)}
-            className={`py-1.5 rounded-full transition-all cursor-pointer ${step === 1 ? 'bg-blue-50 dark:bg-blue-950/60 text-google-blue font-semibold shadow-2xs' : 'text-theme-tertiary hover:text-theme-secondary'}`}
+            className={`py-1.5 px-1 rounded-full transition-all cursor-pointer ${step === 1 ? 'bg-blue-50 dark:bg-blue-950/60 text-google-blue font-semibold shadow-2xs' : 'text-theme-tertiary hover:text-theme-secondary'}`}
           >
-            1. Resume Ingestion
+            <span className="hidden sm:inline">1. Resume Ingestion</span>
+            <span className="sm:hidden">1. Resume</span>
           </button>
           <button
             type="button"
             onClick={() => setStep(2)}
-            className={`py-1.5 rounded-full transition-all cursor-pointer ${step === 2 ? 'bg-blue-50 dark:bg-blue-950/60 text-google-blue font-semibold shadow-2xs' : 'text-theme-tertiary hover:text-theme-secondary'}`}
+            className={`py-1.5 px-1 rounded-full transition-all cursor-pointer ${step === 2 ? 'bg-blue-50 dark:bg-blue-950/60 text-google-blue font-semibold shadow-2xs' : 'text-theme-tertiary hover:text-theme-secondary'}`}
           >
-            2. Choose Round
+            <span className="hidden sm:inline">2. Choose Round</span>
+            <span className="sm:hidden">2. Round</span>
           </button>
           <button
             type="button"
             onClick={() => setStep(3)}
-            className={`py-1.5 rounded-full transition-all cursor-pointer ${step === 3 ? 'bg-blue-50 dark:bg-blue-950/60 text-google-blue font-semibold shadow-2xs' : 'text-theme-tertiary hover:text-theme-secondary'}`}
+            className={`py-1.5 px-1 rounded-full transition-all cursor-pointer ${step === 3 ? 'bg-blue-50 dark:bg-blue-950/60 text-google-blue font-semibold shadow-2xs' : 'text-theme-tertiary hover:text-theme-secondary'}`}
           >
-            3. Join Meet Room
+            <span className="hidden sm:inline">3. Join Meet Room</span>
+            <span className="sm:hidden">3. Join Room</span>
           </button>
         </div>
 

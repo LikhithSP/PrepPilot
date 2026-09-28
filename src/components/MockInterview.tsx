@@ -614,29 +614,26 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
   const currentQuestion = questions[currentIdx];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4 animate-fade-in font-google">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 animate-fade-in font-google">
       {/* PrepPilot Top Info Bar */}
-      <div className="flex items-center justify-between px-2 py-1 text-xs">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1 py-1 text-xs">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <button
             onClick={onBackToDashboard}
-            className="flex items-center gap-1.5 text-xs font-medium text-theme-secondary hover:text-theme-primary transition-colors cursor-pointer"
+            className="flex items-center gap-1 text-xs font-medium text-theme-secondary hover:text-theme-primary transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Leave Call</span>
           </button>
-          <div className="h-4 w-px bg-theme-border" />
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-theme-primary">
-              PrepPilot | {interview.role} ({interview.interview_style?.toUpperCase()} ROUND)
-            </span>
-            <span className="text-[11px] font-mono text-theme-tertiary">
-              preppilot.ai/room-{interviewId.slice(0, 6)}
+          <div className="h-4 w-px bg-theme-border hidden xs:block" />
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <span className="font-medium text-theme-primary truncate max-w-[200px] sm:max-w-none">
+              {interview.role} ({interview.interview_style?.toUpperCase()} ROUND)
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-theme-secondary font-mono">
+        <div className="flex items-center gap-2 text-theme-secondary font-mono self-end sm:self-auto text-[11px] sm:text-xs">
           <Clock className="w-3.5 h-3.5 text-google-blue" />
           <span className="font-medium">{formatTimer(timeLeftSeconds)} Remaining</span>
         </div>
@@ -967,7 +964,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
       </div>
 
       {/* PREPPILOT BOTTOM FLOATING CALL CONTROL BAR */}
-      <div className="py-3 px-6 rounded-full bg-theme-surface border border-theme shadow-lg flex items-center justify-between max-w-2xl mx-auto">
+      <div className="py-2.5 sm:py-3 px-3 sm:px-6 rounded-full bg-theme-surface border border-theme shadow-lg flex items-center justify-between max-w-2xl mx-auto">
         {/* Left: Meeting Time & Topic */}
         <div className="flex items-center gap-2 text-xs font-medium text-theme-secondary hidden sm:flex">
           <span className="font-mono text-theme-primary">{formatTimer(timeLeftSeconds)}</span>
@@ -978,7 +975,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
         </div>
 
         {/* Center: PrepPilot Circular Controls */}
-        <div className="flex items-center gap-3 mx-auto sm:mx-0">
+        <div className="flex items-center gap-2 sm:gap-3 mx-auto sm:mx-0">
           {/* Mic Button */}
           <button
             onClick={toggleListening}
@@ -987,7 +984,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
             }`}
             title={isListening ? 'Turn off microphone' : 'Turn on microphone'}
           >
-            {isListening ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+            {isListening ? <Mic className="w-4 h-4 sm:w-5 sm:h-5" /> : <MicOff className="w-4 h-4 sm:w-5 sm:h-5" />}
           </button>
 
           {/* Turn Captions On/Off (CC) */}
@@ -998,7 +995,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
             }`}
             title="Toggle closed captions"
           >
-            <span className="font-bold text-xs font-mono">CC</span>
+            <span className="font-bold text-[11px] sm:text-xs font-mono">CC</span>
           </button>
 
           {/* Raise Hand / Need Hint */}
@@ -1009,7 +1006,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
               className="meet-ctrl-btn meet-ctrl-normal"
               title="Raise hand for interviewer hint"
             >
-              <Hand className="w-5 h-5" />
+              <Hand className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           )}
 
@@ -1018,10 +1015,10 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
             <button
               onClick={() => handleSendSpokenResponse()}
               disabled={isSubmitting}
-              className="px-4 py-2 bg-google-blue hover:bg-blue-700 text-white rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-google-blue hover:bg-blue-700 text-white rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <span>Submit Answer</span>
-              <ChevronRight className="w-4 h-4" />
+              <span>Submit</span>
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           )}
 
@@ -1032,7 +1029,7 @@ export const MockInterview: React.FC<MockInterviewProps> = ({
             className="meet-ctrl-btn meet-ctrl-danger"
             title="Leave call"
           >
-            <PhoneOff className="w-5 h-5" />
+            <PhoneOff className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 

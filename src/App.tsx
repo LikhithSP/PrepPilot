@@ -71,19 +71,19 @@ function App() {
             </div>
 
             {/* Right Action Suite with LPU Status Pill */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1 sm:gap-3">
               {/* PrepPilot LPU Connected status pill */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-theme-surface-alt border border-theme text-xs text-theme-secondary shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-google-green animate-pulse" />
+              <div className="hidden xs:flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-theme-surface-alt border border-theme text-[11px] sm:text-xs text-theme-secondary shadow-2xs">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-google-green" />
                 <span className="font-medium text-theme-primary">LPU Active</span>
-                <span className="text-theme-tertiary">•</span>
-                <span className="text-[11px] font-mono text-theme-tertiary">Groq</span>
+                <span className="text-theme-tertiary hidden sm:inline">•</span>
+                <span className="text-[10px] sm:text-[11px] font-mono text-theme-tertiary hidden sm:inline">Groq</span>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-0.5 sm:gap-1.5">
                 <button
                   onClick={toggleTheme}
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover transition-colors cursor-pointer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover transition-colors cursor-pointer"
                   title={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
                 >
                   {theme === 'light' ? (
@@ -95,7 +95,7 @@ function App() {
 
                 <button
                   onClick={() => setIsSettingsOpen(true)}
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover transition-colors cursor-pointer"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover transition-colors cursor-pointer"
                   title="Settings & PrepPilot API"
                 >
                   <Settings className="w-4 h-4 stroke-[1.8]" />
@@ -103,7 +103,7 @@ function App() {
 
                 {/* Profile Picture with zoom-in focus */}
                 <div 
-                  className="w-9 h-9 rounded-full overflow-hidden border border-neutral-300 dark:border-neutral-700 shadow-xs select-none cursor-pointer ring-2 ring-blue-500/20 ml-1.5 flex-shrink-0 relative"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-neutral-300 dark:border-neutral-700 shadow-xs select-none cursor-pointer ring-2 ring-blue-500/20 ml-1 flex-shrink-0 relative"
                   title="Profile Account"
                 >
                   <img

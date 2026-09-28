@@ -34,7 +34,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
-  const [skillFilter, setSkillFilter] = useState<string>('all');
 
   useEffect(() => {
     loadData();
@@ -121,7 +120,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 ? 'bg-neutral-900 dark:bg-neutral-950 text-white'
                 : 'bg-black/10 dark:bg-white/15 text-neutral-800 dark:text-neutral-200'
             }`}>
-              {profile ? profile.skills.length : 31}
+              {profile ? profile.skills.length : 0}
             </span>
           </button>
 
@@ -163,7 +162,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 ? 'bg-neutral-800 text-white'
                 : 'bg-black/10 dark:bg-white/15 text-neutral-700 dark:text-neutral-300'
             }`}>
-              {interviews.length > 0 ? interviews.length : 2}
+              {interviews.length}
             </span>
           </button>
         </nav>
@@ -201,25 +200,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <span className="text-[11px] font-semibold tracking-wider text-theme-tertiary uppercase">
                   PREPPILOT HIRING BAR SCORE
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
-                  Calibrating
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700">
+                  {interviews.length > 0 ? 'Calibrated' : 'No Data'}
                 </span>
               </div>
               <div className="space-y-1">
                 <div className="flex items-baseline gap-3">
                   <p className="text-3xl font-medium text-theme-primary font-google">
-                    {interviews.length > 0 ? `${avgScore}%` : '31%'}
+                    {interviews.length > 0 ? `${avgScore}%` : 'No Data'}
                   </p>
-                  <div className="h-1.5 w-24 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden self-center">
-                    <div
-                      className="h-full bg-amber-400 rounded-full"
-                      style={{ width: `${interviews.length > 0 ? avgScore : 31}%` }}
-                    />
-                  </div>
+                  {interviews.length > 0 && (
+                    <div className="h-1.5 w-24 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden self-center">
+                      <div
+                        className="h-full bg-amber-400 rounded-full"
+                        style={{ width: `${avgScore}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-theme-secondary flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-google-yellow" />
-                  <span>Based on real speech performance (L4/L5 standard)</span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${interviews.length > 0 ? 'bg-google-green' : 'bg-neutral-400'}`} />
+                  <span>{interviews.length > 0 ? 'Based on real speech performance (L4/L5 standard)' : 'Complete a mock interview to calibrate score'}</span>
                 </p>
               </div>
             </div>
@@ -230,19 +231,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <span className="text-[11px] font-semibold tracking-wider text-theme-tertiary uppercase">
                   CALIBRATED RESUME
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1">
-                  <Check className="w-3 h-3 stroke-[2.5]" />
-                  <span>Active</span>
-                </span>
+                {profile ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1">
+                    <Check className="w-3 h-3 stroke-[2.5]" />
+                    <span>Active</span>
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700">
+                    None
+                  </span>
+                )}
               </div>
               <div className="space-y-1">
                 <p className="text-base font-medium text-theme-primary truncate">
-                  {profile ? profile.target_role : 'AI/ML Engineer | Full Stack Engineer (AI-focused)'}
+                  {profile ? (profile.target_role || 'Candidate') : 'No resume uploaded'}
                 </p>
-                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-google-blue border border-blue-200 dark:border-blue-900/60 text-[11px] font-medium">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-google-blue" />
-                  <span>{profile ? `${profile.skills.length} Technical Skills Verified` : '31 Technical Skills Verified'}</span>
-                </div>
+                {profile ? (
+                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-google-blue border border-blue-200 dark:border-blue-900/60 text-[11px] font-medium">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-google-blue" />
+                    <span>{`${profile.skills?.length || 0} Technical Skills Verified`}</span>
+                  </div>
+                ) : (
+                  <p className="text-xs text-theme-tertiary">
+                    Upload resume in interview setup to calibrate
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -255,8 +268,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
               {/* Left Column: Text & Actions */}
               <div className="space-y-4 max-w-xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100/70 dark:bg-blue-500/15 border border-blue-200 dark:border-blue-400/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
+                <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100/70 dark:bg-blue-500/15 border border-blue-200 dark:border-blue-400/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
                   <span>Next Recommended Assessment</span>
                 </div>
                 
@@ -311,9 +323,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {interviews.length > 0 ? (
-                interviews.slice(0, 2).map((iv) => (
+            {interviews.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {interviews.slice(0, 2).map((iv) => (
                   <div
                     key={iv.id}
                     onClick={() => onViewEvaluation(iv.id)}
@@ -344,69 +356,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </span>
                     </div>
                   </div>
-                ))
-              ) : (
-                <>
-                  {/* Mock Card 1 for clean visual matching when empty */}
-                  <div
-                    onClick={() => setIsSetupModalOpen(true)}
-                    className="google-card p-5 space-y-4 cursor-pointer hover:border-google-blue transition-all bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-blue-50 dark:bg-blue-950/50 text-google-blue border border-blue-200 dark:border-blue-900/60">
-                        HR ROUND
-                      </span>
-                      <span className="text-xs text-theme-secondary font-mono">
-                        Score <span className="text-theme-primary font-bold">32%</span>
-                      </span>
-                    </div>
-                    <div className="space-y-1">
-                      <h5 className="text-sm font-medium text-theme-primary">AI Engineer (LLM/RAG) / Full Stack Engineer</h5>
-                      <p className="text-xs text-theme-tertiary flex items-center gap-3">
-                        <span>Sep 18, 2026</span>
-                        <span>•</span>
-                        <span>Duration: 34 mins</span>
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-theme text-xs text-theme-tertiary">
-                      <span>PrepPilot Behavioral Index</span>
-                      <span className="text-google-blue font-medium flex items-center gap-1">
-                        Review Report &gt;
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Mock Card 2 for clean visual matching when empty */}
-                  <div
-                    onClick={() => setIsSetupModalOpen(true)}
-                    className="google-card p-5 space-y-4 cursor-pointer hover:border-google-blue transition-all bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-blue-50 dark:bg-blue-950/50 text-google-blue border border-blue-200 dark:border-blue-900/60">
-                        TECHNICAL ROUND
-                      </span>
-                      <span className="text-xs text-theme-secondary font-mono">
-                        Score <span className="text-theme-primary font-bold">30%</span>
-                      </span>
-                    </div>
-                    <div className="space-y-1">
-                      <h5 className="text-sm font-medium text-theme-primary">AI Engineer (LLM/RAG) / Full Stack Engineer</h5>
-                      <p className="text-xs text-theme-tertiary flex items-center gap-3">
-                        <span>Sep 18, 2026</span>
-                        <span>•</span>
-                        <span>Duration: 47 mins</span>
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-theme text-xs text-theme-tertiary">
-                      <span>Systems & Architecture Calibrated</span>
-                      <span className="text-google-blue font-medium flex items-center gap-1">
-                        Review Report &gt;
-                      </span>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="google-card p-8 text-center space-y-3 bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]">
+                <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-950/40 text-google-blue flex items-center justify-center mx-auto">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <h5 className="text-sm font-medium text-theme-primary">No Recorded Evaluations Yet</h5>
+                <p className="text-xs text-theme-secondary max-w-md mx-auto">
+                  Your interview scorecards, performance metrics, and detailed question critiques will appear here once you finish a mock session.
+                </p>
+                <button
+                  onClick={() => setIsSetupModalOpen(true)}
+                  className="btn-google-primary text-xs py-2 px-4 cursor-pointer inline-flex items-center gap-2 mt-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Start Your First Interview</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -416,391 +385,190 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* ========================================================================= */}
       {activeTab === 'resume_intelligence' && (
         <div className="space-y-6 animate-fade-in">
-          {/* Candidate Profile Dossier Card */}
-          <div className="google-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700/60 flex items-center justify-center font-google text-2xl font-medium text-neutral-800 dark:text-neutral-200 shrink-0 shadow-2xs">
-                {profile?.name ? profile.name.charAt(0) : 'S'}
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-xl font-normal text-theme-primary font-google">
-                    {profile?.name || 'Student Candidate'}
-                  </h3>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-950/50 text-google-blue border border-blue-200 dark:border-blue-900/60">
-                    Junior L3/L4 Track
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1">
-                    <Check className="w-3 h-3 stroke-[2.5]" />
-                    <span>AST Parsed</span>
-                  </span>
-                </div>
-
-                <p className="text-xs text-theme-secondary">
-                  Target Role: <span className="font-medium text-theme-primary">{profile?.target_role || 'AI/ML Engineer | Full Stack Engineer (AI-focused)'}</span>
-                </p>
-
-                <div className="flex flex-wrap items-center gap-3 pt-0.5 text-xs text-theme-tertiary font-mono">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span>ATS Compatibility: <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">94%</strong></span>
+          {profile ? (
+            <>
+              {/* Candidate Profile Dossier Card */}
+              <div className="google-card p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-neutral-100 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700/60 flex items-center justify-center font-google text-2xl font-medium text-neutral-800 dark:text-neutral-200 shrink-0 shadow-2xs">
+                    {profile.name ? profile.name.charAt(0).toUpperCase() : 'C'}
                   </div>
-                  <span>•</span>
-                  <span>Calibrated Dossier: <strong className="text-theme-primary font-semibold">v2.4</strong></span>
-                  <span>•</span>
-                  <span>Last Ingested: <span className="text-theme-secondary">Sep 18, 2026 (via PDF Engine)</span></span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setIsSetupModalOpen(true)}
-              className="px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800/60 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-xs font-medium text-theme-primary flex items-center gap-2 self-start md:self-center transition-colors cursor-pointer shadow-2xs shrink-0"
-            >
-              <FileText className="w-4 h-4 text-theme-tertiary" />
-              <span>Update Resume</span>
-            </button>
-          </div>
-
-          {/* Identified Technical Stack Card with Filter Pills */}
-          <div className="google-card p-6 space-y-6 bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-theme">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="text-base font-normal text-theme-primary font-google">
-                    Identified Technical Stack
-                  </h4>
-                  <span className="px-2 py-0.5 rounded-full text-[11px] font-mono text-theme-tertiary bg-theme-surface-alt border border-theme">
-                    31 Skills Grounded via AST
-                  </span>
-                </div>
-                <p className="text-xs text-theme-tertiary mt-0.5">
-                  Classified from candidate experience, open-source repositories, and verified project codebases.
-                </p>
-              </div>
-
-              {/* Category Filter Pills */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                {[
-                  { id: 'all', label: 'All (31)' },
-                  { id: 'ai', label: 'AI & LLM (8)' },
-                  { id: 'backend', label: 'Backend (7)' },
-                  { id: 'infra', label: 'Infra (6)' },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setSkillFilter(tab.id)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                      skillFilter === tab.id
-                        ? 'bg-google-blue text-white shadow-2xs'
-                        : 'bg-theme-surface-alt border border-theme text-theme-secondary hover:text-theme-primary hover:bg-theme-surface-hover'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Categorized Skills Section */}
-            <div className="space-y-5">
-              {/* Category 1: Languages & Foundations */}
-              {(skillFilter === 'all' || skillFilter === 'backend') && (
-                <div className="space-y-2.5">
-                  <span className="text-[11px] font-semibold tracking-wider text-theme-tertiary uppercase">
-                    LANGUAGES & FOUNDATIONS (6)
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {['Python', 'TypeScript', 'JavaScript', 'SQL', 'Git', 'Tailwind CSS'].map((skill, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-neutral-100 dark:bg-[#1a202c] border border-neutral-200 dark:border-neutral-700/70 text-neutral-800 dark:text-neutral-200 shadow-2xs hover:border-google-blue transition-colors"
-                      >
-                        <span className="w-2 h-2 rounded-full bg-google-green" />
-                        <span>{skill}</span>
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-xl font-normal text-theme-primary font-google">
+                        {profile.name || 'Candidate Profile'}
+                      </h3>
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-950/50 text-google-blue border border-blue-200 dark:border-blue-900/60">
+                        {profile.experience_level || 'Mid-Level'}
                       </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Category 2: AI Systems, Vector Retrieval & Embeddings */}
-              {(skillFilter === 'all' || skillFilter === 'ai') && (
-                <div className="space-y-2.5">
-                  <span className="text-[11px] font-semibold tracking-wider text-google-blue uppercase">
-                    AI SYSTEMS, VECTOR RETRIEVAL & EMBEDDINGS (8)
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      'Qdrant',
-                      'Pinecone',
-                      'LangChain',
-                      'Hugging Face',
-                      'RAG Architectures',
-                      'BM25 Sparse Search',
-                      'Reciprocal Rank Fusion',
-                      'Cross-Encoder Re-ranking',
-                    ].map((skill, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 text-blue-900 dark:text-blue-300 shadow-2xs hover:border-google-blue transition-colors"
-                      >
-                        <span className="w-2 h-2 rounded-full bg-google-blue" />
-                        <span>{skill}</span>
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1">
+                        <Check className="w-3 h-3 stroke-[2.5]" />
+                        <span>Parsed & Active</span>
                       </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Category 3: Frameworks & Database Infrastructure */}
-              {(skillFilter === 'all' || skillFilter === 'backend') && (
-                <div className="space-y-2.5">
-                  <span className="text-[11px] font-semibold tracking-wider text-theme-tertiary uppercase">
-                    FRAMEWORKS & DATABASE INFRASTRUCTURE (10)
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      'React.js',
-                      'Next.js',
-                      'FastAPI',
-                      'Node.js',
-                      'Express.js',
-                      'PostgreSQL',
-                      'MongoDB',
-                      'Supabase',
-                      'Docker',
-                      'Kubernetes',
-                    ].map((skill, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-neutral-100 dark:bg-[#1a202c] border border-neutral-200 dark:border-neutral-700/70 text-neutral-800 dark:text-neutral-200 shadow-2xs hover:border-google-blue transition-colors"
-                      >
-                        <span>{skill}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Category 4: Cloud, Observability & Testing */}
-              {(skillFilter === 'all' || skillFilter === 'infra') && (
-                <div className="space-y-2.5">
-                  <span className="text-[11px] font-semibold tracking-wider text-theme-tertiary uppercase">
-                    CLOUD, OBSERVABILITY & TESTING (7)
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {['AWS', 'CI/CD', 'Prometheus', 'Grafana', 'Pytest', 'Jest', 'Postman'].map((skill, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-neutral-100 dark:bg-[#1a202c] border border-neutral-200 dark:border-neutral-700/70 text-neutral-800 dark:text-neutral-200 shadow-2xs hover:border-google-blue transition-colors"
-                      >
-                        <span>{skill}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Section: Ingested Projects for Probing Questions */}
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center text-google-blue">
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="16 18 22 12 16 6" />
-                    <polyline points="8 6 2 12 8 18" />
-                  </svg>
-                </div>
-                <h4 className="text-base font-normal text-theme-primary font-google">
-                  Ingested Projects for Probing Questions
-                </h4>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-mono text-theme-tertiary bg-theme-surface-alt border border-theme">
-                  3 Projects Active
-                </span>
-              </div>
-              <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                <span className="text-theme-tertiary">Index Status:</span>
-                <span className="font-semibold">Ready for Mocking</span>
-              </span>
-            </div>
-            <p className="text-xs text-theme-tertiary">
-              Extracted from candidate resume and AST-indexed for technical interview interrogation & live architectural probing.
-            </p>
-
-            {/* 2-Column Grid for Projects 1 & 2 matching reference */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Project 1: RepoMind */}
-              <div className="google-card p-5 space-y-4 bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-google-green" />
-                    <h5 className="text-base font-medium text-theme-primary font-google">RepoMind</h5>
-                  </div>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-theme-surface-alt text-theme-secondary border border-theme">
-                    AST-Aware RAG
-                  </span>
-                </div>
-
-                <p className="text-xs text-theme-secondary leading-relaxed">
-                  Agentic codebase intelligence platform that ingests GitHub repositories using AST-aware parsing to generate grounded technical answers via hybrid retrieval.
-                </p>
-
-                <div className="flex flex-wrap gap-1.5">
-                  {['Python', 'FastAPI', 'Next.js', 'Qdrant', 'Hugging Face', 'BM25', 'RAG', 'Docker'].map((tag, ti) => (
-                    <span
-                      key={ti}
-                      className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-theme-surface-alt border border-theme text-theme-secondary"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Probing Question Card */}
-                <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-google-blue uppercase tracking-wider">
-                      <span>★</span>
-                      <span>L4/L5 SYSTEMS & RETRIEVAL PROBE</span>
                     </div>
-                    <span className="text-[11px] font-mono text-theme-tertiary">Weight: High</span>
-                  </div>
-                  <p className="text-xs text-theme-primary italic leading-relaxed">
-                    "How did you handle the state of the 'agentic' workflow? Did you use a specific framework like LangGraph, and how did you manage the memory/context window for long codebase queries?"
-                  </p>
-                  <div className="flex items-center justify-between pt-1 text-xs">
-                    <button
-                      onClick={() => setIsSetupModalOpen(true)}
-                      className="text-google-blue font-medium hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>Simulate This Question</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="text-[11px] font-mono text-theme-tertiary">
-                      Rubric Criteria: Context Pruning (Score: 4/5)
-                    </span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Project 2: DocuMind */}
-              <div className="google-card p-5 space-y-4 bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-google-green" />
-                    <h5 className="text-base font-medium text-theme-primary font-google">DocuMind</h5>
-                  </div>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-theme-surface-alt text-theme-secondary border border-theme">
-                    Multi-Tenant Search
-                  </span>
-                </div>
+                    <p className="text-xs text-theme-secondary">
+                      Target Role: <span className="font-medium text-theme-primary">{profile.target_role || 'Software Engineer'}</span>
+                    </p>
 
-                <p className="text-xs text-theme-secondary leading-relaxed">
-                  Enterprise document intelligence platform supporting multi-format ingestion, semantic search, and grounded QA with tenant isolation.
-                </p>
-
-                <div className="flex flex-wrap gap-1.5">
-                  {['Python', 'FastAPI', 'React', 'PostgreSQL', 'Hugging Face', 'BM25', 'Groq', 'RAGAS'].map((tag, ti) => (
-                    <span
-                      key={ti}
-                      className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-theme-surface-alt border border-theme text-theme-secondary"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Probing Question Card */}
-                <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-google-blue uppercase tracking-wider">
-                      <span>★</span>
-                      <span>DISTRIBUTED SYSTEMS & ISOLATION PROBE</span>
+                    <div className="flex flex-wrap items-center gap-3 pt-0.5 text-xs text-theme-tertiary font-mono">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span>Verified Skills: <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">{profile.skills.length}</strong></span>
+                      </div>
+                      <span>•</span>
+                      <span>Projects Ingested: <strong className="text-theme-primary font-semibold">{profile.extracted_projects?.length || 0}</strong></span>
+                      <span>•</span>
+                      <span>Ingested: <span className="text-theme-secondary">{new Date(profile.created_at).toLocaleDateString()}</span></span>
                     </div>
-                    <span className="text-[11px] font-mono text-theme-tertiary">Weight: Critical</span>
                   </div>
-                  <p className="text-xs text-theme-primary italic leading-relaxed">
-                    "How did you implement tenant-level vector namespace isolation in Qdrant or Pinecone? Did you use metadata filtering or separate collections, and what was the performance impact?"
-                  </p>
-                  <div className="flex items-center justify-between pt-1 text-xs">
-                    <button
-                      onClick={() => setIsSetupModalOpen(true)}
-                      className="text-google-blue font-medium hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>Simulate This Question</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="text-[11px] font-mono text-theme-tertiary">
-                      Rubric Criteria: Security & Isolation
+                </div>
+
+                <button
+                  onClick={() => setIsSetupModalOpen(true)}
+                  className="px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800/60 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-xs font-medium text-theme-primary flex items-center gap-2 self-start md:self-center transition-colors cursor-pointer shadow-2xs shrink-0"
+                >
+                  <FileText className="w-4 h-4 text-theme-tertiary" />
+                  <span>Update Resume</span>
+                </button>
+              </div>
+
+              {/* Identified Technical Stack Card with Filter Pills */}
+              <div className="google-card p-6 space-y-6 bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-theme">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-base font-normal text-theme-primary font-google">
+                        Identified Technical Stack
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-mono text-theme-tertiary bg-theme-surface-alt border border-theme">
+                        {profile.skills.length} Skills Grounded
+                      </span>
+                    </div>
+                    <p className="text-xs text-theme-tertiary mt-0.5">
+                      Extracted from candidate resume text and AST-indexed for technical interview interrogation.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Actual Candidate Skills Badges */}
+                <div className="space-y-4">
+                  {profile.skills && profile.skills.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {profile.skills.map((skill, i) => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-neutral-100 dark:bg-[#1a202c] border border-neutral-200 dark:border-neutral-700/70 text-neutral-800 dark:text-neutral-200 shadow-2xs hover:border-google-blue transition-colors"
+                        >
+                          <span className="w-2 h-2 rounded-full bg-google-blue" />
+                          <span>{skill}</span>
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-theme-tertiary">No specific skills parsed.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Section: Ingested Projects for Probing Questions */}
+              {profile.extracted_projects && profile.extracted_projects.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center text-google-blue">
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="16 18 22 12 16 6" />
+                          <polyline points="8 6 2 12 8 18" />
+                        </svg>
+                      </div>
+                      <h4 className="text-base font-normal text-theme-primary font-google">
+                        Ingested Projects for Probing Questions
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-mono text-theme-tertiary bg-theme-surface-alt border border-theme">
+                        {profile.extracted_projects.length} Projects Active
+                      </span>
+                    </div>
+                    <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                      <span className="text-theme-tertiary">Index Status:</span>
+                      <span className="font-semibold">Ready for Mocking</span>
                     </span>
                   </div>
-                </div>
-              </div>
-            </div>
+                  <p className="text-xs text-theme-tertiary">
+                    Extracted from your resume and indexed for technical interview interrogation & live architectural probing.
+                  </p>
 
-            {/* Full-width Project 3: LISA matching reference */}
-            <div className="google-card p-5 space-y-4 bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-google-green" />
-                  <h5 className="text-base font-medium text-theme-primary font-google">LISA</h5>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-theme-surface-alt text-theme-secondary border border-theme">
-                    Full-Stack Offline AI
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] uppercase font-semibold text-theme-tertiary block">Candidate Role</span>
-                  <span className="text-xs font-medium text-theme-primary">Frontend &amp; Offline Sync Lead</span>
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {profile.extracted_projects.map((proj, idx) => (
+                      <div key={idx} className="google-card p-5 space-y-4 bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-google-green" />
+                            <h5 className="text-base font-medium text-theme-primary font-google">{proj.name}</h5>
+                          </div>
+                        </div>
 
-              <p className="text-xs text-theme-secondary leading-relaxed">
-                Full-stack AI learning platform with proficiency assessment, personalized paths, multilingual exercises, and offline-first Progressive Web App (PWA) support.
+                        <p className="text-xs text-theme-secondary leading-relaxed">
+                          {proj.description}
+                        </p>
+
+                        {proj.technologies && proj.technologies.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {proj.technologies.map((tag, ti) => (
+                              <span
+                                key={ti}
+                                className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-theme-surface-alt border border-theme text-theme-secondary"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {proj.potentialQuestions && proj.potentialQuestions.length > 0 && (
+                          <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5 text-xs font-semibold text-google-blue uppercase tracking-wider">
+                                <span>★</span>
+                                <span>TECHNICAL DEEP-DIVE PROBE</span>
+                              </div>
+                            </div>
+                            <p className="text-xs text-theme-primary italic leading-relaxed">
+                              "{proj.potentialQuestions[0]}"
+                            </p>
+                            <div className="pt-1 text-xs">
+                              <button
+                                onClick={() => setIsSetupModalOpen(true)}
+                                className="text-google-blue font-medium hover:underline flex items-center gap-1 cursor-pointer"
+                              >
+                                <span>Simulate This Question</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="p-12 google-card text-center space-y-3 bg-white dark:bg-[#14181f] border border-[#dadce0] dark:border-[#262c38]">
+              <FileText className="w-10 h-10 text-theme-tertiary mx-auto stroke-1" />
+              <h4 className="text-base font-normal text-theme-primary">No Resume Uploaded</h4>
+              <p className="text-xs text-theme-secondary max-w-sm mx-auto">
+                Upload your resume when starting a new mock interview to see your extracted technical skills, projects, and architecture probes.
               </p>
-
-              <div className="flex flex-wrap gap-1.5">
-                {['React', 'TypeScript', 'Supabase', 'PostgreSQL', 'Gemini 1.5 Pro', 'Groq', 'OpenRouter', 'Service Workers / PWA'].map((tag, ti) => (
-                  <span
-                    key={ti}
-                    className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-theme-surface-alt border border-theme text-theme-secondary"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              {/* Probing Question Card */}
-              <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-google-blue uppercase tracking-wider">
-                    <span>★</span>
-                    <span>CLIENT-SIDE PERSISTENCE & REAL-TIME SYNC PROBE</span>
-                  </div>
-                  <span className="text-[11px] font-mono text-theme-tertiary">Weight: High</span>
-                </div>
-                <p className="text-xs text-theme-primary italic leading-relaxed">
-                  "How did you reconcile offline-first local IndexedDB state caching with Supabase real-time sync conflict resolution when a student reconnected after network dropouts?"
-                </p>
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
-                  <button
-                    onClick={() => setIsSetupModalOpen(true)}
-                    className="text-google-blue font-medium hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>Simulate This Question</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                  <div className="flex items-center gap-3 text-[11px] font-mono text-theme-tertiary">
-                    <span>Expected Rubric: Operational Transformation / CRDTs</span>
-                    <span>•</span>
-                    <span className="text-google-blue hover:underline cursor-pointer">View Evaluation Rubrics</span>
-                  </div>
-                </div>
-              </div>
+              <button
+                onClick={() => setIsSetupModalOpen(true)}
+                className="btn-google-primary text-xs py-2 px-4 cursor-pointer mt-2 inline-flex items-center gap-2"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Upload Resume & Start</span>
+              </button>
             </div>
-          </div>
+          )}
         </div>
       )}
 
